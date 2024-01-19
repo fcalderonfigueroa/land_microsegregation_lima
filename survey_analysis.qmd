@@ -1,0 +1,409 @@
+---
+title: "Lima Como Vamos Survey Analysis"
+author: "Fernando Calderón-Figueroa"
+date: today
+execute: 
+  warning: false
+format:
+  html:
+    # embed-resources: true
+    toc: true
+    code-fold: true
+    df-print: paged
+---
+
+## Loading packages and data
+
+```{r setup}
+library(tidyverse)
+library(lme4)
+library(modelsummary)
+library(sjPlot)
+library(corrplot)
+library(DescTools)
+library(performance)
+library(fastDummies)
+
+lcv1019_ctx = read_csv('data/processed/lcv1019_ctx.csv') |>
+  mutate(ses_factor = factor(ses_factor, levels=c(1,2,3,4,5),
+                             labels = c('A','B','C','D','E')),
+         year_factor = factor(year))
+str(lcv1019_ctx)
+```
+
+## Exploring dependent variables
+
+The data includes ```r nrow(lcv1019_ctx)``` observations for ten years of the _Lima Cómo Vamos_ survey. There are ```r ncol(lcv1019_ctx)-1``` variables besides the ID, ```r ncol(lcv1019_ctx) - grep("^civiceng_allvars$", colnames(lcv1019_ctx))``` of them are contextual. The types of analyses are restricted due to data availability for specific years. For instance, my main outcomes of interest are **civic engagement** and **trust in neighbours**. The survey includes the former in every year, but the latter only for the 2010-2014 period.
+
+I measure civic engagement through a series of questions about participation in collective action, from signing petitions to attending participatory budget meetings. I use a summary indicator of having partaking in _any_ of them as `civiceng_core` (dummy) for those items present in all years. The proportion of respondents that have partaken is ```r round(mean(lcv1019_ctx$civiceng_core, na.rm = TRUE), 2)``` (`sd =` ```r round(sd(lcv1019_ctx$civiceng_core, na.rm = TRUE), 2)```), but this varies a lot by district and year (see @fig-civiceng-district and @fig-civiceng-year). 
+
+```{r civic engagement by district}
+#| label: fig-civiceng-district
+#| fig-cap: "Civic engagement by district"
+
+lcv1019_ctx |>
+  mutate(DISTRITO = str_to_title(DISTRITO)) |>
+  group_by(UBIGEO, DISTRITO) |>
+  summarize(ses_predom = unique(NSE_PREDOM, na.rm = TRUE),
+            mean_ce = mean(civiceng_core, na.rm = TRUE),
+            sd_ce = sd(civiceng_core, na.rm = TRUE)) |>
+  ggplot(aes(x = reorder(DISTRITO, mean_ce), y = mean_ce,
+             group = ses_predom, color = ses_predom)) +
+  geom_pointrange(aes(ymin = mean_ce-sd_ce, ymax = mean_ce+sd_ce)) +
+  scale_color_brewer(palette = 'RdYlGn', direction = -1) +
+  labs(x = 'Distrito',
+       y = 'Civic engagement (proportion and standard deviation)',
+       color = 'Predominant \nSocioeconomic \nStatus') +
+  coord_flip()
+```
+
+```{r civic engagement by year}
+#| label: fig-civiceng-year
+#| fig-cap: "Civic engagement by year"
+
+lcv1019_ctx |>
+    group_by(year_factor) |>
+    summarize(year = year_factor,
+              mean_ce = mean(civiceng_core, na.rm = TRUE),
+              sd_ce = sd(civiceng_core, na.rm = TRUE)) |>
+    ggplot(aes(x = year, y = mean_ce)) +
+    geom_pointrange(aes(ymin = mean_ce-sd_ce, ymax = mean_ce+sd_ce)) + 
+    xlab('Year') + ylab('Civic engagement (proportion and SD)')
+
+```
+
+A version of the restricted dataset is for the years 2010-2014. These years include a question about trust in neighbours. The distribution of these responses is approximately normal (see @fig-trust-hist). tbl-trust shows see the distribution of responses by year, while @fig-trust-district plots the means and standard deviations by district (colour indicates the predominant socioeconomic status of the district, A being the highest).
+
+```{r plot trust}
+#| label: fig-trust-hist
+#| fig-cap: "Distribution of trust in neighbours"
+
+temp = filter(lcv1019_ctx, year < 2015)
+ggplot(temp, aes(trust_neighbours)) +
+  geom_histogram(binwidth = 1)
+
+```
+
+```{r table trust neighbours}
+#| label: tbl-trust
+#| tbl-cap: "Trust in neighbours by year (0=low)"
+
+data.frame(trust_neighbours = as.factor(temp$trust_neighbours),
+           year = temp$year) |>
+  group_by(trust_neighbours, year) |>
+  tally() |>
+  pivot_wider(names_from = trust_neighbours,
+              values_from = n)
+
+```
+
+```{r plot trust by district}
+#| label: fig-trust-district
+#| fig-cap: "Trust in neighbours by district"
+
+lcv1019_ctx |>
+  filter(year < 2015) |>
+  mutate(DISTRITO = str_to_title(DISTRITO)) |>
+  group_by(UBIGEO, DISTRITO) |>
+  summarize(ses_predom = unique(NSE_PREDOM, na.rm = TRUE),
+            mean_trust = mean(trust_neighbours, na.rm = TRUE),
+            sd_trust = sd(trust_neighbours, na.rm = TRUE)) |>
+  ggplot(aes(x = reorder(DISTRITO, mean_trust), y = mean_trust,
+             group = ses_predom, color = ses_predom)) +
+  geom_pointrange(aes(ymin = mean_trust-sd_trust,
+                      ymax = mean_trust+sd_trust)) +
+  scale_color_brewer(palette = 'RdYlGn', direction = -1) +
+  labs(x = 'Distrito',
+       y = 'Trust in neighbours (proportion and standard deviation)',
+       color = 'Predominant \nSocioeconomic \nStatus') +
+  coord_flip()
+```
+
+In @fig-assoc-dvs we can see that trust is not associated with most of the civic engagement variables. 
+
+```{r association between dependent vars}
+#| label: fig-assoc-dvs
+#| fig-cap: "Association matrix of potential dependent variables (Cramer's V)"
+
+dat = filter(lcv1019_ctx, year < 2015) |>
+  select(petition:participatory_budget,
+         trust_neighbours)
+vmat = PairApply(dat, CramerV) # Cramer's V instead of Pearson for precision
+
+corrplot(vmat,
+         type = 'upper',
+         order = 'hclust',
+         addCoef.col = 'grey50',
+         tl.col = 'black',
+         tl.srt = 45,
+         tl.cex =0.8)
+```
+
+Upon this exploration, and considering that I have aggregated data at the district level, I model civic engagement using multilevel logistic regression and trust in neighbours with multilevel linear regression.
+
+## Exploring independent variables
+
+The list of independent variables is contingent on the years for the analysis. In @fig-assoc-ivs I show the association between candidates for independent variables across _all models_. Some of them will be useful for just one of the dependent variables.
+
+
+```{r association among independent vars}
+#| label: fig-assoc-ivs
+#| fig-cap: "Association among independent variables"
+
+dat2 = select(lcv1019_ctx, civiceng_core, year, female, age,
+              ses_rev, safety_lima,safety_hood, victimization, 
+              works_home, works_not, lowered, children_under15,
+              ls, circuity_avg_mean, barriers_03_mean,
+              change19902020_prop)
+cmat = cor(dat2, method = 'pearson', use = 'complete.obs')
+corrplot(cmat,
+         type = 'upper',
+         order = 'hclust',
+         tl.col = 'black',
+         tl.srt = 45,
+         tl.cex =0.8)
+
+```
+
+
+## Civic engagement models
+
+I start with an intercept model to calculate the proportion of the variance that corresponds to within-district variation (@tbl-civiceng-icc).
+
+```{r civiceng icc}
+#| code-fold: false
+#| label: tbl-civiceng-icc
+#| tbl-cap: "Civic engagement's intra-district variation (ICC)"
+
+mciviceng0 = glmer(civiceng_core ~ 1 + (1 | UBIGEO),
+             data = lcv1019_ctx,
+             family = binomial(link = 'logit'))
+icc(mciviceng0)
+```
+
+While the ICC is low, it is the only available level of geographic aggregation to match the spatial data.
+
+Preliminary models below. I still need to consider ways to organize these models. I could plot all models together for different buffers of barriers, or I could just choose one. They don’t seem to add too much difference and effect sizes are small. Also, consider a way to present models with interaction terms.
+
+::: panel-tabset
+
+## Plot
+
+```{r mciviceng plot}
+
+# standardized variables including factors as dummies 
+dat_ce = lcv1019_ctx |>
+  select(civiceng_core, UBIGEO, ses_factor, year_factor, 
+         age, female, victimization, safety_lima,
+         safety_hood, old_timer, drive_or_taxi,
+         works_home, barriers_03_mean, ls, change19902020_prop) |>
+  dummy_cols(remove_first_dummy = TRUE, ignore_na = TRUE) |>
+  mutate(across(age:change19902020_prop, ~ c(scale(.x))))|>
+  select(-c(ses_factor, year_factor))
+
+# list of independent variables
+indVarsList = dat_ce |>
+  select(-c(civiceng_core, UBIGEO)) |>
+  colnames() |>
+  paste(collapse = '+') 
+
+# model
+
+mciviceng1 = glmer(as.formula(paste('civiceng_core ~', indVarsList,
+                                    '+ (1 | UBIGEO)')),
+                   data = dat_ce,
+                   family = binomial(link = 'logit'))
+
+mciviceng2 = update(mciviceng1, . ~ . + barriers_03_mean:victimization + barriers_03_mean:old_timer)
+
+# plot
+
+plot_models(mciviceng1, mciviceng2, 
+            vline.color = 'red',
+            m.labels = c('Civic Engagement',
+                         'Civic Engagement (interactions)'),
+            axis.labels = c('Barriers 3m x Old Timer',
+                            'Barriers 3m x Victimization',
+                            'Year 2019 (vs. 2010)',
+                            'Year 2018 (vs. 2010)',
+                            'Year 2017 (vs. 2010)',
+                            'Year 2016 (vs. 2010)',
+                            'Year 2015 (vs. 2010)',
+                            'Year 2014 (vs. 2010)',
+                            'Year 2013 (vs. 2010)',
+                            'Year 2012 (vs. 2010)',
+                            'Year 2011 (vs. 2010)',
+                            'Socioec. Lev. E (vs. A)',
+                            'Socioec. Lev. D (vs. A)',
+                            'Socioec. Lev. C (vs. A)',
+                            'Socioec. Lev. B (vs. A)',
+                            'Urbanized After 1990 (dist. prop.)',
+                            'Local Segregation (dist.)',
+                            'Barriers 3m (dist. mean)',
+                            'Works from Home',
+                            'Drives or Taxi to Work',
+                            'Old Timer',
+                            'Neighbourhood Safety',
+                            'Lima Safety',
+                            'Crime Victimization',
+                            'Female',
+                            'Age')) +
+  ylim(.25, 1.75)
+
+```
+
+## Predictions
+
+```{r mciveng predictions}
+
+plot_model(mciviceng2, type='pred',
+           terms = c('barriers_03_mean[all]', 'old_timer'),
+           title = 'Predicted probabilities of civic engagement') +
+  scale_color_discrete(
+    name = 'Old Timer',
+    labels = c('No', 'Yes'))
+
+```
+
+## Table
+
+```{r mciviceng table}
+
+modelsummary(list(mciviceng1, mciviceng2),
+             exponentiate = TRUE)
+
+```
+
+## Descriptives
+
+```{r mciviceng descriptives} 
+
+dat_ce_desc = lcv1019_ctx |> # -c(year_factor, UBIGEO)
+  select(civiceng_core, ses_factor, age, female, 
+         victimization, safety_lima, safety_hood,
+         old_timer, drive_or_taxi, works_home,
+         barriers_03_mean, ls, change19902020_prop) 
+datasummary_balance(~1, data = dat_ce_desc,
+                    fmt = 2)
+
+```
+
+:::
+
+The results above use only the **district-level average of barriers at 3km buffer** as independent variable of interest and not all other buffer levels. The reason is that models do not differ that much from one another. 
+
+## Trust in neighbours models
+
+The next variable to model is **trust in neighbours**. First, I fit an intercept only model to calculate the intra-class correlation (ICC) (@tbl-trust-icc).
+
+```{r trust icc}
+#| code-fold: false
+#| label: tbl-trust-icc
+#| tbl-cap: "Trust in neghbours' intra-district variance (ICC)"
+
+dat_trust = filter(lcv1019_ctx, year < 2015) |>
+  select(UBIGEO, trust_neighbours, ses_factor, year_factor, 
+         age, female, victimization, safety_lima, safety_hood, 
+         old_timer, drive_or_taxi, works_home, lowered,
+         children_under15,
+         barriers_03_mean, ls, change19902020_prop) |>
+  dummy_cols(remove_first_dummy = TRUE, ignore_na = TRUE) |>
+  mutate(across(age:change19902020_prop, ~ c(scale(.x))))|>
+  select(-c(ses_factor, year_factor))
+
+mtrust0 = lmer(trust_neighbours ~ 1 + (1 | UBIGEO), data = dat_trust)
+
+icc(mtrust0)
+
+```
+
+The ICC is low but higher than the one for civic engagement. The within-district variability suggests the effects of built environment features may be higher.
+
+::: panel-tabset
+
+## Plot
+
+```{r mtrust plot}
+# model
+
+indVarsList2 = dat_trust |>
+  select(-c(trust_neighbours, UBIGEO)) |>
+  colnames() |>
+  paste(collapse = '+') 
+
+
+mtrust1 = lmer(as.formula(paste('trust_neighbours ~',indVarsList2,
+                                '+ (1 | UBIGEO)')),
+                 data = dat_trust)
+
+mtrust2 = update(mtrust1, . ~ . + barriers_03_mean:safety_hood + barriers_03_mean:old_timer)
+
+# plot
+
+plot_models(mtrust1, mtrust2, 
+            vline.color = 'red',
+            m.labels = c('Trust in neighbours',
+                         'Trust in neighbours (interaction)'),
+            axis.labels = c('Barriers 3m x Old Timer',
+                            'Barriers 3m x Nb. Safety',
+                            'Year 2014 (vs. 2010)',
+                            'Year 2013 (vs. 2010)',
+                            'Year 2012 (vs. 2010)',
+                            'Year 2011 (vs. 2010)',
+                            'Socioec. Lev. E (vs. A)',
+                            'Socioec. Lev. D (vs. A)',
+                            'Socioec. Lev. C (vs. A)',
+                            'Socioec. Lev. B (vs. A)',
+                            'Urbanized After 1990 (dist. prop.)',
+                            'Local Segregation (dist.)',
+                            'Barriers 3m (dist. mean)',
+                            'Children under 15',
+                            'Below High School',
+                            'Works from Home',
+                            'Drives or Taxi to Work',
+                            'Old Timer',
+                            'Neighbourhood Safety',
+                            'Lima Safety',
+                            'Crime Victimization',
+                            'Female',
+                            'Age'))
+```
+
+## Predictions
+
+```{r mtrust predictions}
+
+plot_model(mtrust2, type='pred',
+           terms = c('barriers_03_mean[all]', 'safety_hood'),
+           title = 'Predicted values of trust in neighbours',
+           legend.title = 'Neighbourhood safety') +
+  scale_color_discrete(labels = c('0','1', '2', '3', '4'))
+
+```
+
+## Table
+
+```{r mtrust table}
+
+modelsummary(list(mtrust1, mtrust2))
+
+```
+
+## Descriptives
+
+```{r mtrust descriptives}
+
+dat_trust_desc = filter(lcv1019_ctx, year < 2015) |>
+  select(trust_neighbours, ses_factor, age, female, 
+         victimization, safety_lima, safety_hood, 
+         old_timer, drive_or_taxi, works_home, lowered,
+         children_under15, barriers_03_mean, ls,
+         change19902020_prop)
+datasummary_balance(~1, data = dat_trust_desc,
+                    fmt = 2)
+
+```
+
+
+:::
+

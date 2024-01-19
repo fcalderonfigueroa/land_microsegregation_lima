@@ -1,0 +1,488 @@
+---
+title: "Barriers Analysis"
+author: "Fernando Calderón-Figueroa"
+date: today
+execute: 
+  warning: false
+format:
+  html:
+    # embed-resources: true
+    toc: true
+    code-fold: true
+    df-print: paged
+---
+
+## Loading packages and data
+
+```{r setup}
+library(sf)
+library(MASS)
+library(tidyverse)
+library(corrplot)
+library(modelsummary)
+library(jtools)
+library(sjPlot)
+library(classInt)
+library(RColorBrewer)
+library(ggridges)
+library(conflicted)
+conflicted::conflict_prefer(name = 'select',
+                            winner = 'dplyr')
+conflicted::conflict_prefer(name = 'filter',
+                            winner = 'dplyr')
+
+
+blocks_data_sf = st_read('data/processed/blocks_data.gpkg')
+blocks_data = st_drop_geometry(blocks_data_sf)
+```
+
+## Exploring data
+
+I am using the data for all Metropolitan Lima and Callao's residential blocks *N*=99,685. This selection filters out blocks without socioeconomic data.
+
+### Dependent variables
+
+First, I plot the dependent variable candidates. These are the barriers within 1 km network distance from each block in Lima. The distributions are very skewed and some have extremely large counts (\>400). Thus, I am removing some of the extreme values from the plot.
+
+```{r dependent vars}
+blocks_data |> 
+  pivot_longer(starts_with('barriers_buff'),
+               names_to = 'buffers',
+               values_to = 'barriers') |>
+  ggplot(aes(x=barriers, fill=buffers)) +
+  geom_histogram(alpha = 0.4, bins=120) +
+  xlim(NA, 700) + ylim(NA, 8000) # truncating axes for visualization
+```
+
+These are all count variables. Therefore, it is not recommended to model it using a linear regression. There are also not too many zeroes, which makes the candidates Poisson and negative binomial regressions. Before assessing them, below I show some of the independent variables of interest.
+
+```{r independent vars}
+blocks_data |>
+  pivot_longer(cols = c(HIGH_SES:intersection_count,
+                        density:ls, pre1975:change19902020),
+               names_to = 'variable',
+               values_to = 'value') |>
+  ggplot(aes(value)) + 
+  geom_histogram(bins = 10) +
+  facet_wrap(~variable, scales = 'free_x')
+```
+
+The plots below use `barriers_buff3` as the dependent variable for convenience but this is not entirely set. Note that the dependent variable is logged due to its skewed distribution (see above). The logs allow to visualize the relationship with the independent variables before fitting a Poisson or negative binomial regression model.
+
+### Conditional means and SD (testing overdispersion)
+
+To decide between a Poisson or a more flexible negative binomial regression, I need to account for potential overdispersion. Overdispersion occurs whenever the variance of $\lambda_i$ is considerably larger than its mean This is because a Poisson distribution assumes that $mean=variance$. 
+
+```{r overdispersion table by SES}
+blocks_data |>
+  group_by(as.factor(NSE_PREDOM)) |>
+  summarise(across(barriers_buff0:barriers_buff10,
+                   list(mean = mean,
+                        sd = sd))) |>
+  tibble()
+```
+
+The overdispersion is present, suggesting the preferred choice is a negative binomial regression. With a distribution so heavily skewed, it helps to transform the variable to a log scale for visual purposes. Below, I plot the distribution of barriers at a 3m buffer and add the predominant SES in each block as a group. This allows to see that while higher SES blocks have _more_ barriers around them, lower SES ones have several nonetheless.
+
+
+```{r plot density by SES}
+blocks_data |> 
+  ggplot(aes(x=log(barriers_buff3+1),
+             y=fct_rev(as.factor(NSE_PREDOM)),
+             fill=NSE_PREDOM)) +
+  geom_density_ridges(show.legend = FALSE) +
+  scale_fill_brewer(palette = 'RdYlGn', direction = -1) +
+  labs(x = 'Barriers 3m buffer (log scale)',
+     y = 'Predominant Socioeconomic Status')
+```
+### Conditioning on Segregation Levels
+
+Besides SES, local segregation may be an important predictor of barriers. To test this before the model, we can take a visual look. The graph below shows that highly segregated places do not appear to have higher values of fences around them.
+
+```{r density by segregation}
+
+breaks = classIntervals(c(min(blocks_data$ls) - 0.0001,
+                             blocks_data$ls), n = 5, style = 'kmeans')
+
+blocks_data |> 
+  mutate(ls_cat = cut(ls, breaks$brks,
+                      labels = c('low', 'medium low',
+                                 'medium', 'medium high',
+                                 'high'))) |>
+  ggplot(aes(x=log(barriers_buff3+1),
+             y=ls_cat, 
+             fill=ls_cat)) +
+  geom_density_ridges(show.legend = FALSE) +
+  scale_fill_brewer(palette = 'Blues') +
+  labs(x = 'Barriers 3m buffer (log scale)',
+       y = 'Local Segregation')
+```
+
+
+## Independent variables
+
+::: panel-tabset
+
+## Intersections and urbanization age
+
+```{r bivariate plot 1}
+blocks_data |>
+  # filter(DISTRITO=='SAN MIGUEL') |>
+  ggplot(aes(intersection_count, log(barriers_buff3),
+             color = as.factor(pre1975))) +
+  geom_point(alpha = .25) +
+  geom_smooth(method = 'lm', formula = y ~ x, color = 'black')
+```
+
+## Circuity average and urban change (1990-2020)
+
+```{r bivariate plot 2}
+blocks_data |>
+  # filter(DISTRITO=='SAN MIGUEL') |>
+  ggplot(aes(circuity_avg, log(barriers_buff3),
+             color = as.factor(change19902020))) +
+  geom_point(alpha = .4) +
+  geom_smooth(method = 'lm', formula = y ~ x, color = 'black')
+```
+
+## Local segregation and high SES
+
+```{r bivariate plot 3}
+blocks_data |>
+  # filter(DISTRITO=='SAN MIGUEL') |>
+  ggplot(aes(ls, log(barriers_buff3),
+             color = HIGH_SES)) +
+  geom_point(alpha = .4) +
+  geom_smooth(method = 'lm', formula = y ~ x, color = 'black')
+```
+:::
+
+## Correlation matrix
+
+```{r correlations}
+
+dat = blocks_data |>
+  select(barriers_buff3, circuity_avg,
+         intersection_count, pre1975, HIGH_SES, ls, density)
+
+cmat = cor(dat, method = 'pearson', use = 'complete.obs')
+corrplot(cmat,
+         type = 'upper',
+         order = 'hclust',
+         addCoef.col = 'grey50',
+         tl.col = 'black',
+         tl.srt = 45,
+         tl.cex =0.8)
+
+```
+
+## Models using full dataset
+
+These are preliminary models. I have normalized the independent variables for interpretation. The models are negative binomial considering the distribution of the dependent variables and their overdispersion.
+
+::: panel-tabset
+## Plot
+
+```{r models full plot}
+
+# selecting data for models and scaling independent variables
+data_m = blocks_data |>
+  select(barriers_buff00 = barriers_buff0,
+         barriers_buff01 = barriers_buff1,
+         barriers_buff03 = barriers_buff3,
+         barriers_buff05 = barriers_buff5, # for order
+         barriers_buff10,
+         NSE_PREDOM, circuity_avg,
+         intersection_count, density, ls, change19902020)
+# |> mutate(across(circuity_avg:change19902020, ~ c(scale(.x)))) # potentially useful if not using scaled results directly in plot
+
+# variable names for formulae in models
+depVarList = data_m |>
+  select(barriers_buff00:barriers_buff10) |>
+  colnames()
+
+indVarList = setdiff(colnames(data_m), depVarList) |>
+  append("circuity_avg:intersection_count") |> # interac
+  paste(collapse = ' + ')
+
+# formatting data for splitting that allows to automate the process
+data_long = pivot_longer(data_m,
+                         cols = all_of(depVarList),
+                         names_to = 'depVar',
+                         values_to = 'value')
+
+# models stored as list
+modelslist = data_long |> 
+  split(data_long$depVar) |>
+  map( ~ glm.nb(as.formula(paste('value~',indVarList)),
+                data = .x, na.action = na.omit))
+
+# plot
+plot_models(modelslist, std.est = 'std2', ci.lvl = .99,
+            vline.color = 'red',
+            m.labels = c('Barriers at 0m buffer',
+                        'Barriers at 1m buffer',
+                        'Barriers at 3m buffer',
+                        'Barriers at 5m buffer',
+                        'Barriers at 10m buffer'),
+            colors = 'RdYlGn',
+            axis.labels = c('Circuity Average x Intersection Count',
+                            'Urbanized bet. 1990-2020',
+                            'Local Segregation Score',
+                            'Density',
+                            'Intersection Count',
+                            'Circuity Average',
+                            'Socioeconomic Level E (reference = A)',
+                            'Socioeconomic Level D (reference = A)',
+                            'Socioeconomic Level C (reference = A)',
+                            'Socioeconomic Level B (reference = A)'))
+
+
+```
+## Predictions
+
+```{r predictions}
+
+plot_model(modelslist$barriers_buff03, type='pred',
+           terms = c('intersection_count',
+                     'NSE_PREDOM [A, B, C, D, E]',
+                     'circuity_avg'),
+           title = 'Predicted counts of barriers at 3m buffer',
+           axis.title = c('Count of Intersections',
+                          'Barriers at 3m buffer'),
+           legend.title = 'Predominant \nSocioeconomic \nStatus',
+           colors = rev(brewer.pal(5, 'RdYlGn'))) 
+
+```
+
+## Table
+
+```{r models full table}
+
+modelsummary(modelslist, exponentiate = TRUE,
+             standardize = 'refit')
+
+```
+
+## Descriptives
+
+```{r models descriptives}
+
+datasummary_balance(~1, data = data_m, fmt = 2)
+
+```
+
+:::
+
+Preliminary take-away points:
+
+-   The models suggest that newer parts of the city have generally fewer fences. This may be part of the measurement bias.
+-   There is evidence that higher SES have in general more fences around each block, but before I showed that lower SES blocks have several fences regardless of this difference. Also, note that local segregation scores (`ls`) comparing the block's SES distribution with the district have no significant effect. 
+-   Not testing for spatial dependence since observations are exhaustive and, thus, not mutually independent.
+-   The effect of urban design is clear in the effects of intersections and circuity average. More intersections are associated with more fences particularly when combined with more sinuous designs.
+
+## Models with restricted data
+
+I start with some models for three districts: **San Juan de Lurigancho**, **La Molina**, and **San Miguel**. The first one is one of the largest in the city, with a population of over a million people. The data here is reliable as I contacted a person from that district to complete the data collection using Mapillary and he did most of the district. La Molina is relevant as a relatively new area of the city, developed largely after 1975, and with a high proportion of upper strata population. It is known for the proliferation of fences as well. The data is pretty good according to what Nelson and Christina (former RAs) commented. The third district, San Miguel, is a mostly middle-class one, for which the data is complete. This is where I started the data collection some time ago. 
+
+```{r restricted 1: ses by district}
+
+selection = c('LA MOLINA', 'SAN JUAN DE LURIGANCHO',
+              'SAN MIGUEL')
+
+blocks_sample = blocks_data |>
+  filter(DISTRITO %in% selection)
+
+blocks_sample |>
+  ggplot(aes(DISTRITO, fill = NSE_PREDOM)) +
+  geom_bar(position = 'dodge') 
+
+```
+
+In a way, the sampling here is of three districts with mostly reliable data and with different population and urbanization age profiles. La Molina is young, while San Miguel grew in the mid-1950s, and San Juan de Lurigancho in between the two. 
+
+::: panel-tabset
+## Plot
+
+```{r models restricted 1 plot}
+
+# selecting data for models and scaling independent variables
+data_m = blocks_data |>
+  select(barriers_buff00 = barriers_buff0,
+         barriers_buff01 = barriers_buff1,
+         barriers_buff03 = barriers_buff3,
+         barriers_buff05 = barriers_buff5, # for order
+         barriers_buff10,
+         NSE_PREDOM, circuity_avg,
+         intersection_count, density, ls, change19902020)
+
+# variable names for formulae in models
+depVarList = data_m |>
+  select(barriers_buff00:barriers_buff10) |>
+  colnames()
+
+indVarList = setdiff(colnames(data_m), depVarList) |>
+  append("circuity_avg:intersection_count") |> # interac
+  paste(collapse = ' + ')
+
+# formatting data for splitting that allows to automate the process
+data_long = pivot_longer(data_m,
+                         cols = all_of(depVarList),
+                         names_to = 'depVar',
+                         values_to = 'value')
+
+# models stored as list
+modelslist = data_long |> 
+  split(data_long$depVar) |>
+  map( ~ glm.nb(as.formula(paste('value~',indVarList)),
+                data = .x,
+                control=glm.control(maxit = 50),
+                na.action = na.omit))
+
+# plot
+plot_models(modelslist, std.est = 'std2', ci.lvl = .99,
+            vline.color = 'red',
+            m.labels = c('Barriers at 0m buffer',
+                        'Barriers at 1m buffer',
+                        'Barriers at 3m buffer',
+                        'Barriers at 5m buffer',
+                        'Barriers at 10m buffer'),
+            axis.labels = c('Circuity Average x Intersection Count',
+                            'Urbanized bet. 1990-2020',
+                            'Local Segregation Score',
+                            'Density',
+                            'Intersection Count',
+                            'Circuity Average',
+                            'Socioeconomic Level E (reference = A)',
+                            'Socioeconomic Level D (reference = A)',
+                            'Socioeconomic Level C (reference = A)',
+                            'Socioeconomic Level B (reference = A)'))
+
+```
+
+
+## Predictions
+
+```{r predictions restricted 1}
+
+plot_model(modelslist$barriers_buff03, type='pred',
+           terms = c('intersection_count',
+                     'NSE_PREDOM [A, B, C, D, E]',
+                     'circuity_avg'),
+           title = 'Predicted counts of barriers at 3m buffer')
+
+```
+
+## Table
+
+```{r models restricted 1 table}
+
+modelsummary(modelslist, exponentiate = TRUE,
+             standardize = 'refit')
+
+```
+:::
+
+These models portray a very similar picture than the one for the full dataset. This suggests that the bias in the data may have not affected the results as much in the end. 
+
+To confirm the trend, I tried to fit the regression using another sample of districts. The two districts are **Santiago de Surco** and **San Juan de Miraflores**. These are neighbouring districts in Southeast Lima. Both have several fences, and a population ranging across SES levels. Santiago de Surco has a larger population among the higher strata, while the opposite happens with San Juan de Miraflores.
+
+
+```{r restricted 2: ses by district}
+
+selection = c('SANTIAGO DE SURCO',
+              'SAN JUAN DE MIRAFLORES')
+
+blocks_sample = blocks_data |>
+  filter(DISTRITO %in% selection)
+
+blocks_sample |>
+  ggplot(aes(DISTRITO, fill = NSE_PREDOM)) +
+  geom_bar(position = 'dodge')
+
+```
+
+The results of the models here align more with my original hypothesis. There are no significant differences across SES levels, except that C-level blocks have more barriers around them. 
+
+::: panel-tabset
+## Plot
+
+```{r models restricted 2 plot}
+
+# selecting data for models 
+data_m = blocks_sample |>
+  rename(barriers_buff00 = barriers_buff0,
+         barriers_buff01 = barriers_buff1,
+         barriers_buff03 = barriers_buff3,
+         barriers_buff05 = barriers_buff5) |> # for order
+  select(barriers_buff00:barriers_buff10,
+         NSE_PREDOM, circuity_avg,
+         intersection_count, ls, change19902020)
+
+# variable names for formulae in models
+depVarList = data_m |>
+  select(barriers_buff00:barriers_buff10) |>
+  colnames()
+
+indVarList = setdiff(colnames(data_m), depVarList) |>
+  append("circuity_avg:intersection_count") |> # interac
+  paste(collapse = ' + ')
+
+# formatting data for splitting that allows to automate the process
+data_long = pivot_longer(data_m,
+                         cols = all_of(depVarList),
+                         names_to = 'depVar',
+                         values_to = 'value')
+
+# models stored as list
+modelslist = data_long |> 
+  split(data_long$depVar) |>
+  map( ~ glm.nb(as.formula(paste('value~',indVarList)),
+                data = .x,
+                control=glm.control(maxit = 50),
+                na.action = na.omit))
+
+# plot
+plot_models(modelslist, std.est = 'std2', ci.lvl = .99,
+            vline.color = 'red',
+            m.labels = c('Barriers at 0m buffer',
+                        'Barriers at 1m buffer',
+                        'Barriers at 3m buffer',
+                        'Barriers at 5m buffer',
+                        'Barriers at 10m buffer'),
+            axis.labels = c('Circuity Average x Intersection Count',
+                            'Urbanized bet. 1990-2020',
+                            'Local Segregation Score',
+                            'Density',
+                            'Intersection Count',
+                            'Circuity Average',
+                            'Socioeconomic Level E (reference = A)',
+                            'Socioeconomic Level D (reference = A)',
+                            'Socioeconomic Level C (reference = A)',
+                            'Socioeconomic Level B (reference = A)'))
+            
+```
+
+## Predictions
+
+```{r predictions restricted 2}
+
+plot_model(modelslist$barriers_buff03, type='pred',
+           terms = c('intersection_count',
+                     'NSE_PREDOM [A, B, C, D, E]',
+                     'circuity_avg'),
+           title = 'Predicted counts of barriers at 3m buffer')
+
+```
+
+## Table
+
+```{r models restricted 2 table}
+
+modelsummary(modelslist, exponentiate = TRUE,
+             standardize = 'refit')
+
+```
+:::
+
+In conclusion, the bigger dataset seems to be the way to go for the paper. I may add a commentary on the alternative sampling of districts, but not necessarily discuss it at large. 

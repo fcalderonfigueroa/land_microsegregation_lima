@@ -1,0 +1,48 @@
+#!usr/bin/env python
+# coding: utf-8
+
+# In[2]:
+
+import pandas as pd
+import geopandas as gpd
+import osmnx as ox
+df = gpd.read_file('../data/raw/block_centroids_limametro.gpkg')
+df['circuity_avg'] = 0
+df['intersection_count'] = 0
+df['barriers_buff0'] = 0
+df['barriers_buff1'] = 0
+df['barriers_buff3'] = 0
+df['barriers_buff5'] = 0
+df['barriers_buff10'] = 0
+df['dist_node'] = 0
+db = ox.graph_from_place('Lima Metropolitana, Peru', network_type='walk')
+barriers = ox.geometries_from_place('Lima Metropolitana, Peru', tags = {'barrier':True})
+for id, row in df.iterrows():
+  try:
+    node = ox.nearest_nodes(db, row.geometry.x, row.geometry.y, return_dist=True)
+    db_trunc = ox.truncate.truncate_graph_dist(db, node[0], max_dist=1000)
+    db_proj = ox.project_graph(db_trunc)
+    db_cons = ox.consolidate_intersections(db_proj, tolerance=10)
+    basic_stats = ox.basic_stats(db_cons)
+    df.loc[id, 'circuity_avg'] = basic_stats['circuity_avg']
+    df.loc[id, 'intersection_count'] = basic_stats['intersection_count']
+    network0gdf = ox.graph_to_gdfs(db_cons, nodes=False, edges=True, node_geometry=False, fill_edge_geometry=False)
+    network4326 = network0gdf.to_crs(epsg=4326)
+    barriers0 = gpd.sjoin(barriers, network4326, 'inner', 'within')
+    df.loc[id, 'barriers_buff0'] = len(barriers0)
+    buffers = [1,3,5,10]
+    barrier_count_buffer = pd.Series(index=buffers, dtype='float64')
+    for j in buffers:
+        network_buffer = network0gdf.buffer(j)
+        buffer_gdf = gpd.GeoDataFrame(geometry=gpd.GeoSeries(network_buffer)).to_crs(epsg=4326)
+        barriers_buffer = gpd.sjoin(barriers, buffer_gdf, 'inner', 'within')
+        barrier_count_buffer.loc[j] = len(barriers_buffer)
+    df.loc[id, 'barriers_buff1'] = barrier_count_buffer[1]
+    df.loc[id, 'barriers_buff3'] = barrier_count_buffer[3]
+    df.loc[id, 'barriers_buff5'] = barrier_count_buffer[5]
+    df.loc[id, 'barriers_buff10'] = barrier_count_buffer[10]
+    df.loc[id, 'dist_node'] = node[1]
+  except:
+    pass
+df_nad83 = df.to_crs(epsg=4269)
+df_nad83.to_file('../data/processed/blocks_buffers.gpkg', driver='GPKG')

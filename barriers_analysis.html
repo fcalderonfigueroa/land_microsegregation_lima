@@ -1,0 +1,1721 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.3.353">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Fernando Calderón-Figueroa">
+<meta name="dcterms.date" content="2023-12-18">
+
+<title>Barriers Analysis</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="barriers_analysis_files/libs/clipboard/clipboard.min.js"></script>
+<script src="barriers_analysis_files/libs/quarto-html/quarto.js"></script>
+<script src="barriers_analysis_files/libs/quarto-html/popper.min.js"></script>
+<script src="barriers_analysis_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="barriers_analysis_files/libs/quarto-html/anchor.min.js"></script>
+<link href="barriers_analysis_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="barriers_analysis_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="barriers_analysis_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="barriers_analysis_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="barriers_analysis_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+<script src="barriers_analysis_files/libs/kePrint-0.0.1/kePrint.js"></script>
+<link href="barriers_analysis_files/libs/lightable-0.0.1/lightable.css" rel="stylesheet">
+<link href="barriers_analysis_files/libs/pagedtable-1.1/css/pagedtable.css" rel="stylesheet">
+<script src="barriers_analysis_files/libs/pagedtable-1.1/js/pagedtable.js"></script>
+
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body>
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+<div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+  <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">Table of contents</h2>
+   
+  <ul>
+  <li><a href="#loading-packages-and-data" id="toc-loading-packages-and-data" class="nav-link active" data-scroll-target="#loading-packages-and-data">Loading packages and data</a></li>
+  <li><a href="#exploring-data" id="toc-exploring-data" class="nav-link" data-scroll-target="#exploring-data">Exploring data</a>
+  <ul class="collapse">
+  <li><a href="#dependent-variables" id="toc-dependent-variables" class="nav-link" data-scroll-target="#dependent-variables">Dependent variables</a></li>
+  <li><a href="#conditional-means-and-sd-testing-overdispersion" id="toc-conditional-means-and-sd-testing-overdispersion" class="nav-link" data-scroll-target="#conditional-means-and-sd-testing-overdispersion">Conditional means and SD (testing overdispersion)</a></li>
+  <li><a href="#conditioning-on-segregation-levels" id="toc-conditioning-on-segregation-levels" class="nav-link" data-scroll-target="#conditioning-on-segregation-levels">Conditioning on Segregation Levels</a></li>
+  </ul></li>
+  <li><a href="#independent-variables" id="toc-independent-variables" class="nav-link" data-scroll-target="#independent-variables">Independent variables</a></li>
+  <li><a href="#correlation-matrix" id="toc-correlation-matrix" class="nav-link" data-scroll-target="#correlation-matrix">Correlation matrix</a></li>
+  <li><a href="#models-using-full-dataset" id="toc-models-using-full-dataset" class="nav-link" data-scroll-target="#models-using-full-dataset">Models using full dataset</a></li>
+  <li><a href="#models-with-restricted-data" id="toc-models-with-restricted-data" class="nav-link" data-scroll-target="#models-with-restricted-data">Models with restricted data</a></li>
+  </ul>
+</nav>
+</div>
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Barriers Analysis</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Fernando Calderón-Figueroa </p>
+          </div>
+  </div>
+    
+    <div>
+    <div class="quarto-title-meta-heading">Published</div>
+    <div class="quarto-title-meta-contents">
+      <p class="date">December 18, 2023</p>
+    </div>
+  </div>
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="loading-packages-and-data" class="level2">
+<h2 class="anchored" data-anchor-id="loading-packages-and-data">Loading packages and data</h2>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sf)</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(MASS)</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(corrplot)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(modelsummary)</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(jtools)</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(sjPlot)</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(classInt)</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(RColorBrewer)</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggridges)</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(conflicted)</span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>conflicted<span class="sc">::</span><span class="fu">conflict_prefer</span>(<span class="at">name =</span> <span class="st">'select'</span>,</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>                            <span class="at">winner =</span> <span class="st">'dplyr'</span>)</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>conflicted<span class="sc">::</span><span class="fu">conflict_prefer</span>(<span class="at">name =</span> <span class="st">'filter'</span>,</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>                            <span class="at">winner =</span> <span class="st">'dplyr'</span>)</span>
+<span id="cb1-16"><a href="#cb1-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-17"><a href="#cb1-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-18"><a href="#cb1-18" aria-hidden="true" tabindex="-1"></a>blocks_data_sf <span class="ot">=</span> <span class="fu">st_read</span>(<span class="st">'data/processed/blocks_data.gpkg'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code>Reading layer `blocks_data' from data source 
+  `C:\Users\Fernando\Dropbox\Projects\Fences_Lima\data\processed\blocks_data.gpkg' 
+  using driver `GPKG'
+Simple feature collection with 99685 features and 24 fields
+Geometry type: POINT
+Dimension:     XY
+Bounding box:  xmin: -77.19496 ymin: -12.49626 xmax: -76.6713 ymax: -11.72791
+Geodetic CRS:  NAD83</code></pre>
+</div>
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>blocks_data <span class="ot">=</span> <span class="fu">st_drop_geometry</span>(blocks_data_sf)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+</section>
+<section id="exploring-data" class="level2">
+<h2 class="anchored" data-anchor-id="exploring-data">Exploring data</h2>
+<p>I am using the data for all Metropolitan Lima and Callao’s residential blocks <em>N</em>=99,685. This selection filters out blocks without socioeconomic data.</p>
+<section id="dependent-variables" class="level3">
+<h3 class="anchored" data-anchor-id="dependent-variables">Dependent variables</h3>
+<p>First, I plot the dependent variable candidates. These are the barriers within 1 km network distance from each block in Lima. The distributions are very skewed and some have extremely large counts (&gt;400). Thus, I am removing some of the extreme values from the plot.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>blocks_data <span class="sc">|&gt;</span> </span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="fu">starts_with</span>(<span class="st">'barriers_buff'</span>),</span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">'buffers'</span>,</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">'barriers'</span>) <span class="sc">|&gt;</span></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span>barriers, <span class="at">fill=</span>buffers)) <span class="sc">+</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">alpha =</span> <span class="fl">0.4</span>, <span class="at">bins=</span><span class="dv">120</span>) <span class="sc">+</span></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlim</span>(<span class="cn">NA</span>, <span class="dv">700</span>) <span class="sc">+</span> <span class="fu">ylim</span>(<span class="cn">NA</span>, <span class="dv">8000</span>) <span class="co"># truncating axes for visualization</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/dependent%20vars-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>These are all count variables. Therefore, it is not recommended to model it using a linear regression. There are also not too many zeroes, which makes the candidates Poisson and negative binomial regressions. Before assessing them, below I show some of the independent variables of interest.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">c</span>(HIGH_SES<span class="sc">:</span>intersection_count,</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>                        density<span class="sc">:</span>ls, pre1975<span class="sc">:</span>change19902020),</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>               <span class="at">names_to =</span> <span class="st">'variable'</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>               <span class="at">values_to =</span> <span class="st">'value'</span>) <span class="sc">|&gt;</span></span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(value)) <span class="sc">+</span> </span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="at">bins =</span> <span class="dv">10</span>) <span class="sc">+</span></span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>variable, <span class="at">scales =</span> <span class="st">'free_x'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/independent%20vars-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>The plots below use <code>barriers_buff3</code> as the dependent variable for convenience but this is not entirely set. Note that the dependent variable is logged due to its skewed distribution (see above). The logs allow to visualize the relationship with the independent variables before fitting a Poisson or negative binomial regression model.</p>
+</section>
+<section id="conditional-means-and-sd-testing-overdispersion" class="level3">
+<h3 class="anchored" data-anchor-id="conditional-means-and-sd-testing-overdispersion">Conditional means and SD (testing overdispersion)</h3>
+<p>To decide between a Poisson or a more flexible negative binomial regression, I need to account for potential overdispersion. Overdispersion occurs whenever the variance of <span class="math inline">\(\lambda_i\)</span> is considerably larger than its mean This is because a Poisson distribution assumes that <span class="math inline">\(mean=variance\)</span>.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(<span class="fu">as.factor</span>(NSE_PREDOM)) <span class="sc">|&gt;</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="fu">across</span>(barriers_buff0<span class="sc">:</span>barriers_buff10,</span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>                   <span class="fu">list</span>(<span class="at">mean =</span> mean,</span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>                        <span class="at">sd =</span> sd))) <span class="sc">|&gt;</span></span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tibble</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+
+<div data-pagedtable="false">
+  <script data-pagedtable-source="" type="application/json">
+{"columns":[{"label":["as.factor(NSE_PREDOM)"],"name":[1],"type":["fct"],"align":["left"]},{"label":["barriers_buff0_mean"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["barriers_buff0_sd"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["barriers_buff1_mean"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["barriers_buff1_sd"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["barriers_buff3_mean"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["barriers_buff3_sd"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["barriers_buff5_mean"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["barriers_buff5_sd"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["barriers_buff10_mean"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["barriers_buff10_sd"],"name":[11],"type":["dbl"],"align":["right"]}],"data":[{"1":"A","2":"7.533619","3":"9.395158","4":"23.291845","5":"31.81951","6":"31.922031","7":"66.19294","8":"48.013591","9":"137.95296","10":"103.92132","11":"287.27397"},{"1":"B","2":"8.582594","3":"10.001133","4":"24.934369","5":"28.95386","6":"32.185796","7":"53.91783","8":"43.883323","9":"96.32541","10":"91.73462","11":"199.53264"},{"1":"C","2":"7.056371","3":"9.875062","4":"19.786155","5":"26.07307","6":"23.199166","7":"37.97685","8":"29.152263","9":"52.30749","10":"60.56331","11":"108.23743"},{"1":"D","2":"3.395521","3":"7.280758","4":"9.134442","5":"18.22813","6":"10.350126","7":"20.84458","8":"12.936171","9":"26.71214","10":"27.07578","11":"55.79616"},{"1":"E","2":"1.682576","3":"4.945369","4":"4.614879","5":"12.47935","6":"5.496165","7":"15.59360","8":"7.247169","9":"23.20885","10":"14.71314","11":"47.11722"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+</div>
+</div>
+<p>The overdispersion is present, suggesting the preferred choice is a negative binomial regression. With a distribution so heavily skewed, it helps to transform the variable to a log scale for visual purposes. Below, I plot the distribution of barriers at a 3m buffer and add the predominant SES in each block as a group. This allows to see that while higher SES blocks have <em>more</em> barriers around them, lower SES ones have several nonetheless.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>blocks_data <span class="sc">|&gt;</span> </span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(barriers_buff3<span class="sc">+</span><span class="dv">1</span>),</span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>             <span class="at">y=</span><span class="fu">fct_rev</span>(<span class="fu">as.factor</span>(NSE_PREDOM)),</span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">fill=</span>NSE_PREDOM)) <span class="sc">+</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density_ridges</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">'RdYlGn'</span>, <span class="at">direction =</span> <span class="sc">-</span><span class="dv">1</span>) <span class="sc">+</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">'Barriers 3m buffer (log scale)'</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a>     <span class="at">y =</span> <span class="st">'Predominant Socioeconomic Status'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/plot%20density%20by%20SES-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="conditioning-on-segregation-levels" class="level3">
+<h3 class="anchored" data-anchor-id="conditioning-on-segregation-levels">Conditioning on Segregation Levels</h3>
+<p>Besides SES, local segregation may be an important predictor of barriers. To test this before the model, we can take a visual look. The graph below shows that highly segregated places do not appear to have higher values of fences around them.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>breaks <span class="ot">=</span> <span class="fu">classIntervals</span>(<span class="fu">c</span>(<span class="fu">min</span>(blocks_data<span class="sc">$</span>ls) <span class="sc">-</span> <span class="fl">0.0001</span>,</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>                             blocks_data<span class="sc">$</span>ls), <span class="at">n =</span> <span class="dv">5</span>, <span class="at">style =</span> <span class="st">'kmeans'</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>blocks_data <span class="sc">|&gt;</span> </span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">ls_cat =</span> <span class="fu">cut</span>(ls, breaks<span class="sc">$</span>brks,</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>                      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">'low'</span>, <span class="st">'medium low'</span>,</span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>                                 <span class="st">'medium'</span>, <span class="st">'medium high'</span>,</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>                                 <span class="st">'high'</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(<span class="at">x=</span><span class="fu">log</span>(barriers_buff3<span class="sc">+</span><span class="dv">1</span>),</span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>             <span class="at">y=</span>ls_cat, </span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">fill=</span>ls_cat)) <span class="sc">+</span></span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density_ridges</span>(<span class="at">show.legend =</span> <span class="cn">FALSE</span>) <span class="sc">+</span></span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">'Blues'</span>) <span class="sc">+</span></span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">x =</span> <span class="st">'Barriers 3m buffer (log scale)'</span>,</span>
+<span id="cb8-15"><a href="#cb8-15" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">'Local Segregation'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/density%20by%20segregation-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+</section>
+<section id="independent-variables" class="level2">
+<h2 class="anchored" data-anchor-id="independent-variables">Independent variables</h2>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-1-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-1" role="tab" aria-controls="tabset-1-1" aria-selected="true" href="">Intersections and urbanization age</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-2" role="tab" aria-controls="tabset-1-2" aria-selected="false" href="">Circuity average and urban change (1990-2020)</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-1-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-1-3" role="tab" aria-controls="tabset-1-3" aria-selected="false" href="">Local segregation and high SES</a></li></ul>
+<div class="tab-content">
+<div id="tabset-1-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-1-1-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># filter(DISTRITO=='SAN MIGUEL') |&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(intersection_count, <span class="fu">log</span>(barriers_buff3),</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="fu">as.factor</span>(pre1975))) <span class="sc">+</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> .<span class="dv">25</span>) <span class="sc">+</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">color =</span> <span class="st">'black'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/bivariate%20plot%201-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+<div id="tabset-1-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-2-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># filter(DISTRITO=='SAN MIGUEL') |&gt;</span></span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(circuity_avg, <span class="fu">log</span>(barriers_buff3),</span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="fu">as.factor</span>(change19902020))) <span class="sc">+</span></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">color =</span> <span class="st">'black'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/bivariate%20plot%202-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+<div id="tabset-1-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-1-3-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a>blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># filter(DISTRITO=='SAN MIGUEL') |&gt;</span></span>
+<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(ls, <span class="fu">log</span>(barriers_buff3),</span>
+<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> HIGH_SES)) <span class="sc">+</span></span>
+<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="at">alpha =</span> .<span class="dv">4</span>) <span class="sc">+</span></span>
+<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_smooth</span>(<span class="at">method =</span> <span class="st">'lm'</span>, <span class="at">formula =</span> y <span class="sc">~</span> x, <span class="at">color =</span> <span class="st">'black'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/bivariate%20plot%203-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="correlation-matrix" class="level2">
+<h2 class="anchored" data-anchor-id="correlation-matrix">Correlation matrix</h2>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>dat <span class="ot">=</span> blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(barriers_buff3, circuity_avg,</span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>         intersection_count, pre1975, HIGH_SES, ls, density)</span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>cmat <span class="ot">=</span> <span class="fu">cor</span>(dat, <span class="at">method =</span> <span class="st">'pearson'</span>, <span class="at">use =</span> <span class="st">'complete.obs'</span>)</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="fu">corrplot</span>(cmat,</span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>         <span class="at">type =</span> <span class="st">'upper'</span>,</span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a>         <span class="at">order =</span> <span class="st">'hclust'</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a>         <span class="at">addCoef.col =</span> <span class="st">'grey50'</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>         <span class="at">tl.col =</span> <span class="st">'black'</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>         <span class="at">tl.srt =</span> <span class="dv">45</span>,</span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a>         <span class="at">tl.cex =</span><span class="fl">0.8</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/correlations-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="models-using-full-dataset" class="level2">
+<h2 class="anchored" data-anchor-id="models-using-full-dataset">Models using full dataset</h2>
+<p>These are preliminary models. I have normalized the independent variables for interpretation. The models are negative binomial considering the distribution of the dependent variables and their overdispersion.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-2-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-1" role="tab" aria-controls="tabset-2-1" aria-selected="true" href="">Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-2" role="tab" aria-controls="tabset-2-2" aria-selected="false" href="">Predictions</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-3" role="tab" aria-controls="tabset-2-3" aria-selected="false" href="">Table</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-2-4-tab" data-bs-toggle="tab" data-bs-target="#tabset-2-4" role="tab" aria-controls="tabset-2-4" aria-selected="false" href="">Descriptives</a></li></ul>
+<div class="tab-content">
+<div id="tabset-2-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-2-1-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="co"># selecting data for models and scaling independent variables</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>data_m <span class="ot">=</span> blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">barriers_buff00 =</span> barriers_buff0,</span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">barriers_buff01 =</span> barriers_buff1,</span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">barriers_buff03 =</span> barriers_buff3,</span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">barriers_buff05 =</span> barriers_buff5, <span class="co"># for order</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>         barriers_buff10,</span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a>         NSE_PREDOM, circuity_avg,</span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a>         intersection_count, density, ls, change19902020)</span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a><span class="co"># |&gt; mutate(across(circuity_avg:change19902020, ~ c(scale(.x)))) # potentially useful if not using scaled results directly in plot</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="co"># variable names for formulae in models</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a>depVarList <span class="ot">=</span> data_m <span class="sc">|&gt;</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(barriers_buff00<span class="sc">:</span>barriers_buff10) <span class="sc">|&gt;</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>()</span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a>indVarList <span class="ot">=</span> <span class="fu">setdiff</span>(<span class="fu">colnames</span>(data_m), depVarList) <span class="sc">|&gt;</span></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">append</span>(<span class="st">"circuity_avg:intersection_count"</span>) <span class="sc">|&gt;</span> <span class="co"># interac</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste</span>(<span class="at">collapse =</span> <span class="st">' + '</span>)</span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="co"># formatting data for splitting that allows to automate the process</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a>data_long <span class="ot">=</span> <span class="fu">pivot_longer</span>(data_m,</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a>                         <span class="at">cols =</span> <span class="fu">all_of</span>(depVarList),</span>
+<span id="cb13-24"><a href="#cb13-24" aria-hidden="true" tabindex="-1"></a>                         <span class="at">names_to =</span> <span class="st">'depVar'</span>,</span>
+<span id="cb13-25"><a href="#cb13-25" aria-hidden="true" tabindex="-1"></a>                         <span class="at">values_to =</span> <span class="st">'value'</span>)</span>
+<span id="cb13-26"><a href="#cb13-26" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-27"><a href="#cb13-27" aria-hidden="true" tabindex="-1"></a><span class="co"># models stored as list</span></span>
+<span id="cb13-28"><a href="#cb13-28" aria-hidden="true" tabindex="-1"></a>modelslist <span class="ot">=</span> data_long <span class="sc">|&gt;</span> </span>
+<span id="cb13-29"><a href="#cb13-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">split</span>(data_long<span class="sc">$</span>depVar) <span class="sc">|&gt;</span></span>
+<span id="cb13-30"><a href="#cb13-30" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>( <span class="sc">~</span> <span class="fu">glm.nb</span>(<span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">'value~'</span>,indVarList)),</span>
+<span id="cb13-31"><a href="#cb13-31" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> .x, <span class="at">na.action =</span> na.omit))</span>
+<span id="cb13-32"><a href="#cb13-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-33"><a href="#cb13-33" aria-hidden="true" tabindex="-1"></a><span class="co"># plot</span></span>
+<span id="cb13-34"><a href="#cb13-34" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_models</span>(modelslist, <span class="at">std.est =</span> <span class="st">'std2'</span>, <span class="at">ci.lvl =</span> .<span class="dv">99</span>,</span>
+<span id="cb13-35"><a href="#cb13-35" aria-hidden="true" tabindex="-1"></a>            <span class="at">vline.color =</span> <span class="st">'red'</span>,</span>
+<span id="cb13-36"><a href="#cb13-36" aria-hidden="true" tabindex="-1"></a>            <span class="at">m.labels =</span> <span class="fu">c</span>(<span class="st">'Barriers at 0m buffer'</span>,</span>
+<span id="cb13-37"><a href="#cb13-37" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 1m buffer'</span>,</span>
+<span id="cb13-38"><a href="#cb13-38" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 3m buffer'</span>,</span>
+<span id="cb13-39"><a href="#cb13-39" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 5m buffer'</span>,</span>
+<span id="cb13-40"><a href="#cb13-40" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 10m buffer'</span>),</span>
+<span id="cb13-41"><a href="#cb13-41" aria-hidden="true" tabindex="-1"></a>            <span class="at">colors =</span> <span class="st">'RdYlGn'</span>,</span>
+<span id="cb13-42"><a href="#cb13-42" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.labels =</span> <span class="fu">c</span>(<span class="st">'Circuity Average x Intersection Count'</span>,</span>
+<span id="cb13-43"><a href="#cb13-43" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Urbanized bet. 1990-2020'</span>,</span>
+<span id="cb13-44"><a href="#cb13-44" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Local Segregation Score'</span>,</span>
+<span id="cb13-45"><a href="#cb13-45" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Density'</span>,</span>
+<span id="cb13-46"><a href="#cb13-46" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Intersection Count'</span>,</span>
+<span id="cb13-47"><a href="#cb13-47" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Circuity Average'</span>,</span>
+<span id="cb13-48"><a href="#cb13-48" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level E (reference = A)'</span>,</span>
+<span id="cb13-49"><a href="#cb13-49" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level D (reference = A)'</span>,</span>
+<span id="cb13-50"><a href="#cb13-50" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level C (reference = A)'</span>,</span>
+<span id="cb13-51"><a href="#cb13-51" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level B (reference = A)'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/models%20full%20plot-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+<div id="tabset-2-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-2-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_model</span>(modelslist<span class="sc">$</span>barriers_buff03, <span class="at">type=</span><span class="st">'pred'</span>,</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">terms =</span> <span class="fu">c</span>(<span class="st">'intersection_count'</span>,</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>                     <span class="st">'NSE_PREDOM [A, B, C, D, E]'</span>,</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                     <span class="st">'circuity_avg'</span>),</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">title =</span> <span class="st">'Predicted counts of barriers at 3m buffer'</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">axis.title =</span> <span class="fu">c</span>(<span class="st">'Count of Intersections'</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>                          <span class="st">'Barriers at 3m buffer'</span>),</span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>           <span class="at">legend.title =</span> <span class="st">'Predominant </span><span class="sc">\n</span><span class="st">Socioeconomic </span><span class="sc">\n</span><span class="st">Status'</span>,</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a>           <span class="at">colors =</span> <span class="fu">rev</span>(<span class="fu">brewer.pal</span>(<span class="dv">5</span>, <span class="st">'RdYlGn'</span>))) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/predictions-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+<div id="tabset-2-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-3-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(modelslist, <span class="at">exponentiate =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">standardize =</span> <span class="st">'refit'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">barriers_buff00</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">barriers_buff01</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">&nbsp;barriers_buff03</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">&nbsp;barriers_buff05</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">&nbsp;barriers_buff10</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: center;">5.948</td>
+<td style="text-align: center;">18.846</td>
+<td style="text-align: center;">23.978</td>
+<td style="text-align: center;">33.854</td>
+<td style="text-align: center;">75.500</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.179)</td>
+<td style="text-align: center;">(0.545)</td>
+<td style="text-align: center;">(0.712)</td>
+<td style="text-align: center;">(1.037)</td>
+<td style="text-align: center;">(2.326)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOMB</td>
+<td style="text-align: center;">0.917</td>
+<td style="text-align: center;">0.847</td>
+<td style="text-align: center;">0.830</td>
+<td style="text-align: center;">0.783</td>
+<td style="text-align: center;">0.745</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.030)</td>
+<td style="text-align: center;">(0.027)</td>
+<td style="text-align: center;">(0.027)</td>
+<td style="text-align: center;">(0.026)</td>
+<td style="text-align: center;">(0.025)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOMC</td>
+<td style="text-align: center;">0.663</td>
+<td style="text-align: center;">0.609</td>
+<td style="text-align: center;">0.585</td>
+<td style="text-align: center;">0.534</td>
+<td style="text-align: center;">0.494</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.021)</td>
+<td style="text-align: center;">(0.018)</td>
+<td style="text-align: center;">(0.018)</td>
+<td style="text-align: center;">(0.017)</td>
+<td style="text-align: center;">(0.016)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOMD</td>
+<td style="text-align: center;">0.393</td>
+<td style="text-align: center;">0.343</td>
+<td style="text-align: center;">0.320</td>
+<td style="text-align: center;">0.294</td>
+<td style="text-align: center;">0.277</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.012)</td>
+<td style="text-align: center;">(0.010)</td>
+<td style="text-align: center;">(0.010)</td>
+<td style="text-align: center;">(0.009)</td>
+<td style="text-align: center;">(0.009)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOME</td>
+<td style="text-align: center;">0.269</td>
+<td style="text-align: center;">0.233</td>
+<td style="text-align: center;">0.229</td>
+<td style="text-align: center;">0.226</td>
+<td style="text-align: center;">0.208</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.009)</td>
+<td style="text-align: center;">(0.008)</td>
+<td style="text-align: center;">(0.008)</td>
+<td style="text-align: center;">(0.008)</td>
+<td style="text-align: center;">(0.007)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">circuity_avg</td>
+<td style="text-align: center;">1.302</td>
+<td style="text-align: center;">1.424</td>
+<td style="text-align: center;">1.597</td>
+<td style="text-align: center;">1.719</td>
+<td style="text-align: center;">1.589</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.009)</td>
+<td style="text-align: center;">(0.010)</td>
+<td style="text-align: center;">(0.011)</td>
+<td style="text-align: center;">(0.012)</td>
+<td style="text-align: center;">(0.011)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">intersection_count</td>
+<td style="text-align: center;">2.437</td>
+<td style="text-align: center;">2.359</td>
+<td style="text-align: center;">2.304</td>
+<td style="text-align: center;">2.265</td>
+<td style="text-align: center;">2.183</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.015)</td>
+<td style="text-align: center;">(0.013)</td>
+<td style="text-align: center;">(0.013)</td>
+<td style="text-align: center;">(0.013)</td>
+<td style="text-align: center;">(0.013)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">density</td>
+<td style="text-align: center;">1.130</td>
+<td style="text-align: center;">1.116</td>
+<td style="text-align: center;">1.085</td>
+<td style="text-align: center;">1.069</td>
+<td style="text-align: center;">1.066</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.005)</td>
+<td style="text-align: center;">(0.005)</td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.006)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ls</td>
+<td style="text-align: center;">0.946</td>
+<td style="text-align: center;">0.954</td>
+<td style="text-align: center;">0.954</td>
+<td style="text-align: center;">0.942</td>
+<td style="text-align: center;">0.914</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.007)</td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.006)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">change19902020</td>
+<td style="text-align: center;">0.628</td>
+<td style="text-align: center;">0.613</td>
+<td style="text-align: center;">0.599</td>
+<td style="text-align: center;">0.610</td>
+<td style="text-align: center;">0.593</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.004)</td>
+<td style="text-align: center;">(0.003)</td>
+<td style="text-align: center;">(0.003)</td>
+<td style="text-align: center;">(0.003)</td>
+<td style="text-align: center;">(0.003)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">circuity_avg × intersection_count</td>
+<td style="text-align: center;">1.173</td>
+<td style="text-align: center;">1.214</td>
+<td style="text-align: center;">1.263</td>
+<td style="text-align: center;">1.313</td>
+<td style="text-align: center;">1.294</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; box-shadow: 0px 1.5px;"></td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.006)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.006)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.006)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.007)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.007)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Num.Obs.</td>
+<td style="text-align: center;">99685</td>
+<td style="text-align: center;">99685</td>
+<td style="text-align: center;">99685</td>
+<td style="text-align: center;">99685</td>
+<td style="text-align: center;">99685</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AIC</td>
+<td style="text-align: center;">444812.7</td>
+<td style="text-align: center;">616386.6</td>
+<td style="text-align: center;">644521.0</td>
+<td style="text-align: center;">685143.2</td>
+<td style="text-align: center;">816228.9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">BIC</td>
+<td style="text-align: center;">444926.8</td>
+<td style="text-align: center;">616500.7</td>
+<td style="text-align: center;">644635.1</td>
+<td style="text-align: center;">685257.3</td>
+<td style="text-align: center;">816343.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Log.Lik.</td>
+<td style="text-align: center;">−222394.347</td>
+<td style="text-align: center;">−308181.314</td>
+<td style="text-align: center;">−322248.478</td>
+<td style="text-align: center;">−342559.590</td>
+<td style="text-align: center;">−408102.451</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">RMSE</td>
+<td style="text-align: center;">19811.54</td>
+<td style="text-align: center;">16620.15</td>
+<td style="text-align: center;">992.42</td>
+<td style="text-align: center;">297.45</td>
+<td style="text-align: center;">489.09</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</div>
+<div id="tabset-2-4" class="tab-pane" role="tabpanel" aria-labelledby="tabset-2-4-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="fu">datasummary_balance</span>(<span class="sc">~</span><span class="dv">1</span>, <span class="at">data =</span> data_m, <span class="at">fmt =</span> <span class="dv">2</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Mean</th>
+<th style="text-align: right;" data-quarto-table-cell-role="th">Std. Dev.</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">barriers_buff00</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">5.15</td>
+<td style="text-align: right;">8.75</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">barriers_buff01</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">14.48</td>
+<td style="text-align: right;">23.62</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">barriers_buff03</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">17.37</td>
+<td style="text-align: right;">35.51</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">barriers_buff05</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">22.52</td>
+<td style="text-align: right;">56.07</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">barriers_buff10</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">46.98</td>
+<td style="text-align: right;">116.32</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">circuity_avg</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">1.08</td>
+<td style="text-align: right;">0.05</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">intersection_count</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">200.46</td>
+<td style="text-align: right;">103.97</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">density</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">0.04</td>
+<td style="text-align: right;">0.05</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ls</td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">0.85</td>
+<td style="text-align: right;">0.63</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; box-shadow: 0px 1.5px;">change19902020</td>
+<td style="text-align: left; box-shadow: 0px 1.5px;"></td>
+<td style="text-align: right; box-shadow: 0px 1.5px;">0.23</td>
+<td style="text-align: right; box-shadow: 0px 1.5px;">0.42</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;"></td>
+<td style="text-align: right;">N</td>
+<td style="text-align: right;">Pct.</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">NSE_PREDOM</td>
+<td style="text-align: left;">A</td>
+<td style="text-align: right;">2796</td>
+<td style="text-align: right;">2.8</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">B</td>
+<td style="text-align: right;">12616</td>
+<td style="text-align: right;">12.7</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">C</td>
+<td style="text-align: right;">34539</td>
+<td style="text-align: right;">34.6</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">D</td>
+<td style="text-align: right;">33308</td>
+<td style="text-align: right;">33.4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: left;">E</td>
+<td style="text-align: right;">16426</td>
+<td style="text-align: right;">16.5</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>Preliminary take-away points:</p>
+<ul>
+<li>The models suggest that newer parts of the city have generally fewer fences. This may be part of the measurement bias.</li>
+<li>There is evidence that higher SES have in general more fences around each block, but before I showed that lower SES blocks have several fences regardless of this difference. Also, note that local segregation scores (<code>ls</code>) comparing the block’s SES distribution with the district have no significant effect.</li>
+<li>Not testing for spatial dependence since observations are exhaustive and, thus, not mutually independent.</li>
+<li>The effect of urban design is clear in the effects of intersections and circuity average. More intersections are associated with more fences particularly when combined with more sinuous designs.</li>
+</ul>
+</section>
+<section id="models-with-restricted-data" class="level2">
+<h2 class="anchored" data-anchor-id="models-with-restricted-data">Models with restricted data</h2>
+<p>I start with some models for three districts: <strong>San Juan de Lurigancho</strong>, <strong>La Molina</strong>, and <strong>San Miguel</strong>. The first one is one of the largest in the city, with a population of over a million people. The data here is reliable as I contacted a person from that district to complete the data collection using Mapillary and he did most of the district. La Molina is relevant as a relatively new area of the city, developed largely after 1975, and with a high proportion of upper strata population. It is known for the proliferation of fences as well. The data is pretty good according to what Nelson and Christina (former RAs) commented. The third district, San Miguel, is a mostly middle-class one, for which the data is complete. This is where I started the data collection some time ago.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>selection <span class="ot">=</span> <span class="fu">c</span>(<span class="st">'LA MOLINA'</span>, <span class="st">'SAN JUAN DE LURIGANCHO'</span>,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>              <span class="st">'SAN MIGUEL'</span>)</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a>blocks_sample <span class="ot">=</span> blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(DISTRITO <span class="sc">%in%</span> selection)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-7"><a href="#cb17-7" aria-hidden="true" tabindex="-1"></a>blocks_sample <span class="sc">|&gt;</span></span>
+<span id="cb17-8"><a href="#cb17-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(DISTRITO, <span class="at">fill =</span> NSE_PREDOM)) <span class="sc">+</span></span>
+<span id="cb17-9"><a href="#cb17-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">'dodge'</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/restricted%201-%20ses%20by%20district-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>In a way, the sampling here is of three districts with mostly reliable data and with different population and urbanization age profiles. La Molina is young, while San Miguel grew in the mid-1950s, and San Juan de Lurigancho in between the two.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-3-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-1" role="tab" aria-controls="tabset-3-1" aria-selected="true" href="">Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-2" role="tab" aria-controls="tabset-3-2" aria-selected="false" href="">Predictions</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-3-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-3-3" role="tab" aria-controls="tabset-3-3" aria-selected="false" href="">Table</a></li></ul>
+<div class="tab-content">
+<div id="tabset-3-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-3-1-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" aria-hidden="true" tabindex="-1"></a><span class="co"># selecting data for models and scaling independent variables</span></span>
+<span id="cb18-2"><a href="#cb18-2" aria-hidden="true" tabindex="-1"></a>data_m <span class="ot">=</span> blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb18-3"><a href="#cb18-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="at">barriers_buff00 =</span> barriers_buff0,</span>
+<span id="cb18-4"><a href="#cb18-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">barriers_buff01 =</span> barriers_buff1,</span>
+<span id="cb18-5"><a href="#cb18-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">barriers_buff03 =</span> barriers_buff3,</span>
+<span id="cb18-6"><a href="#cb18-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">barriers_buff05 =</span> barriers_buff5, <span class="co"># for order</span></span>
+<span id="cb18-7"><a href="#cb18-7" aria-hidden="true" tabindex="-1"></a>         barriers_buff10,</span>
+<span id="cb18-8"><a href="#cb18-8" aria-hidden="true" tabindex="-1"></a>         NSE_PREDOM, circuity_avg,</span>
+<span id="cb18-9"><a href="#cb18-9" aria-hidden="true" tabindex="-1"></a>         intersection_count, density, ls, change19902020)</span>
+<span id="cb18-10"><a href="#cb18-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-11"><a href="#cb18-11" aria-hidden="true" tabindex="-1"></a><span class="co"># variable names for formulae in models</span></span>
+<span id="cb18-12"><a href="#cb18-12" aria-hidden="true" tabindex="-1"></a>depVarList <span class="ot">=</span> data_m <span class="sc">|&gt;</span></span>
+<span id="cb18-13"><a href="#cb18-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(barriers_buff00<span class="sc">:</span>barriers_buff10) <span class="sc">|&gt;</span></span>
+<span id="cb18-14"><a href="#cb18-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>()</span>
+<span id="cb18-15"><a href="#cb18-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-16"><a href="#cb18-16" aria-hidden="true" tabindex="-1"></a>indVarList <span class="ot">=</span> <span class="fu">setdiff</span>(<span class="fu">colnames</span>(data_m), depVarList) <span class="sc">|&gt;</span></span>
+<span id="cb18-17"><a href="#cb18-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">append</span>(<span class="st">"circuity_avg:intersection_count"</span>) <span class="sc">|&gt;</span> <span class="co"># interac</span></span>
+<span id="cb18-18"><a href="#cb18-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste</span>(<span class="at">collapse =</span> <span class="st">' + '</span>)</span>
+<span id="cb18-19"><a href="#cb18-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-20"><a href="#cb18-20" aria-hidden="true" tabindex="-1"></a><span class="co"># formatting data for splitting that allows to automate the process</span></span>
+<span id="cb18-21"><a href="#cb18-21" aria-hidden="true" tabindex="-1"></a>data_long <span class="ot">=</span> <span class="fu">pivot_longer</span>(data_m,</span>
+<span id="cb18-22"><a href="#cb18-22" aria-hidden="true" tabindex="-1"></a>                         <span class="at">cols =</span> <span class="fu">all_of</span>(depVarList),</span>
+<span id="cb18-23"><a href="#cb18-23" aria-hidden="true" tabindex="-1"></a>                         <span class="at">names_to =</span> <span class="st">'depVar'</span>,</span>
+<span id="cb18-24"><a href="#cb18-24" aria-hidden="true" tabindex="-1"></a>                         <span class="at">values_to =</span> <span class="st">'value'</span>)</span>
+<span id="cb18-25"><a href="#cb18-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-26"><a href="#cb18-26" aria-hidden="true" tabindex="-1"></a><span class="co"># models stored as list</span></span>
+<span id="cb18-27"><a href="#cb18-27" aria-hidden="true" tabindex="-1"></a>modelslist <span class="ot">=</span> data_long <span class="sc">|&gt;</span> </span>
+<span id="cb18-28"><a href="#cb18-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">split</span>(data_long<span class="sc">$</span>depVar) <span class="sc">|&gt;</span></span>
+<span id="cb18-29"><a href="#cb18-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>( <span class="sc">~</span> <span class="fu">glm.nb</span>(<span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">'value~'</span>,indVarList)),</span>
+<span id="cb18-30"><a href="#cb18-30" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> .x,</span>
+<span id="cb18-31"><a href="#cb18-31" aria-hidden="true" tabindex="-1"></a>                <span class="at">control=</span><span class="fu">glm.control</span>(<span class="at">maxit =</span> <span class="dv">50</span>),</span>
+<span id="cb18-32"><a href="#cb18-32" aria-hidden="true" tabindex="-1"></a>                <span class="at">na.action =</span> na.omit))</span>
+<span id="cb18-33"><a href="#cb18-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb18-34"><a href="#cb18-34" aria-hidden="true" tabindex="-1"></a><span class="co"># plot</span></span>
+<span id="cb18-35"><a href="#cb18-35" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_models</span>(modelslist, <span class="at">std.est =</span> <span class="st">'std2'</span>, <span class="at">ci.lvl =</span> .<span class="dv">99</span>,</span>
+<span id="cb18-36"><a href="#cb18-36" aria-hidden="true" tabindex="-1"></a>            <span class="at">vline.color =</span> <span class="st">'red'</span>,</span>
+<span id="cb18-37"><a href="#cb18-37" aria-hidden="true" tabindex="-1"></a>            <span class="at">m.labels =</span> <span class="fu">c</span>(<span class="st">'Barriers at 0m buffer'</span>,</span>
+<span id="cb18-38"><a href="#cb18-38" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 1m buffer'</span>,</span>
+<span id="cb18-39"><a href="#cb18-39" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 3m buffer'</span>,</span>
+<span id="cb18-40"><a href="#cb18-40" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 5m buffer'</span>,</span>
+<span id="cb18-41"><a href="#cb18-41" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 10m buffer'</span>),</span>
+<span id="cb18-42"><a href="#cb18-42" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.labels =</span> <span class="fu">c</span>(<span class="st">'Circuity Average x Intersection Count'</span>,</span>
+<span id="cb18-43"><a href="#cb18-43" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Urbanized bet. 1990-2020'</span>,</span>
+<span id="cb18-44"><a href="#cb18-44" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Local Segregation Score'</span>,</span>
+<span id="cb18-45"><a href="#cb18-45" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Density'</span>,</span>
+<span id="cb18-46"><a href="#cb18-46" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Intersection Count'</span>,</span>
+<span id="cb18-47"><a href="#cb18-47" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Circuity Average'</span>,</span>
+<span id="cb18-48"><a href="#cb18-48" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level E (reference = A)'</span>,</span>
+<span id="cb18-49"><a href="#cb18-49" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level D (reference = A)'</span>,</span>
+<span id="cb18-50"><a href="#cb18-50" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level C (reference = A)'</span>,</span>
+<span id="cb18-51"><a href="#cb18-51" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level B (reference = A)'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/models%20restricted%201%20plot-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+<div id="tabset-3-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-2-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_model</span>(modelslist<span class="sc">$</span>barriers_buff03, <span class="at">type=</span><span class="st">'pred'</span>,</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">terms =</span> <span class="fu">c</span>(<span class="st">'intersection_count'</span>,</span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>                     <span class="st">'NSE_PREDOM [A, B, C, D, E]'</span>,</span>
+<span id="cb19-4"><a href="#cb19-4" aria-hidden="true" tabindex="-1"></a>                     <span class="st">'circuity_avg'</span>),</span>
+<span id="cb19-5"><a href="#cb19-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">title =</span> <span class="st">'Predicted counts of barriers at 3m buffer'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/predictions%20restricted%201-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+<div id="tabset-3-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-3-3-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(modelslist, <span class="at">exponentiate =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb20-2"><a href="#cb20-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">standardize =</span> <span class="st">'refit'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">barriers_buff00</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">barriers_buff01</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">&nbsp;barriers_buff03</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">&nbsp;barriers_buff05</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">&nbsp;barriers_buff10</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: center;">5.948</td>
+<td style="text-align: center;">18.846</td>
+<td style="text-align: center;">23.978</td>
+<td style="text-align: center;">33.854</td>
+<td style="text-align: center;">75.500</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.179)</td>
+<td style="text-align: center;">(0.545)</td>
+<td style="text-align: center;">(0.712)</td>
+<td style="text-align: center;">(1.037)</td>
+<td style="text-align: center;">(2.326)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOMB</td>
+<td style="text-align: center;">0.917</td>
+<td style="text-align: center;">0.847</td>
+<td style="text-align: center;">0.830</td>
+<td style="text-align: center;">0.783</td>
+<td style="text-align: center;">0.745</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.030)</td>
+<td style="text-align: center;">(0.027)</td>
+<td style="text-align: center;">(0.027)</td>
+<td style="text-align: center;">(0.026)</td>
+<td style="text-align: center;">(0.025)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOMC</td>
+<td style="text-align: center;">0.663</td>
+<td style="text-align: center;">0.609</td>
+<td style="text-align: center;">0.585</td>
+<td style="text-align: center;">0.534</td>
+<td style="text-align: center;">0.494</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.021)</td>
+<td style="text-align: center;">(0.018)</td>
+<td style="text-align: center;">(0.018)</td>
+<td style="text-align: center;">(0.017)</td>
+<td style="text-align: center;">(0.016)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOMD</td>
+<td style="text-align: center;">0.393</td>
+<td style="text-align: center;">0.343</td>
+<td style="text-align: center;">0.320</td>
+<td style="text-align: center;">0.294</td>
+<td style="text-align: center;">0.277</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.012)</td>
+<td style="text-align: center;">(0.010)</td>
+<td style="text-align: center;">(0.010)</td>
+<td style="text-align: center;">(0.009)</td>
+<td style="text-align: center;">(0.009)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOME</td>
+<td style="text-align: center;">0.269</td>
+<td style="text-align: center;">0.233</td>
+<td style="text-align: center;">0.229</td>
+<td style="text-align: center;">0.226</td>
+<td style="text-align: center;">0.208</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.009)</td>
+<td style="text-align: center;">(0.008)</td>
+<td style="text-align: center;">(0.008)</td>
+<td style="text-align: center;">(0.008)</td>
+<td style="text-align: center;">(0.007)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">circuity_avg</td>
+<td style="text-align: center;">1.302</td>
+<td style="text-align: center;">1.424</td>
+<td style="text-align: center;">1.597</td>
+<td style="text-align: center;">1.719</td>
+<td style="text-align: center;">1.589</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.009)</td>
+<td style="text-align: center;">(0.010)</td>
+<td style="text-align: center;">(0.011)</td>
+<td style="text-align: center;">(0.012)</td>
+<td style="text-align: center;">(0.011)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">intersection_count</td>
+<td style="text-align: center;">2.437</td>
+<td style="text-align: center;">2.359</td>
+<td style="text-align: center;">2.304</td>
+<td style="text-align: center;">2.265</td>
+<td style="text-align: center;">2.183</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.015)</td>
+<td style="text-align: center;">(0.013)</td>
+<td style="text-align: center;">(0.013)</td>
+<td style="text-align: center;">(0.013)</td>
+<td style="text-align: center;">(0.013)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">density</td>
+<td style="text-align: center;">1.130</td>
+<td style="text-align: center;">1.116</td>
+<td style="text-align: center;">1.085</td>
+<td style="text-align: center;">1.069</td>
+<td style="text-align: center;">1.066</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.005)</td>
+<td style="text-align: center;">(0.005)</td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.006)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ls</td>
+<td style="text-align: center;">0.946</td>
+<td style="text-align: center;">0.954</td>
+<td style="text-align: center;">0.954</td>
+<td style="text-align: center;">0.942</td>
+<td style="text-align: center;">0.914</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.007)</td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.006)</td>
+<td style="text-align: center;">(0.006)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">change19902020</td>
+<td style="text-align: center;">0.628</td>
+<td style="text-align: center;">0.613</td>
+<td style="text-align: center;">0.599</td>
+<td style="text-align: center;">0.610</td>
+<td style="text-align: center;">0.593</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.004)</td>
+<td style="text-align: center;">(0.003)</td>
+<td style="text-align: center;">(0.003)</td>
+<td style="text-align: center;">(0.003)</td>
+<td style="text-align: center;">(0.003)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">circuity_avg × intersection_count</td>
+<td style="text-align: center;">1.173</td>
+<td style="text-align: center;">1.214</td>
+<td style="text-align: center;">1.263</td>
+<td style="text-align: center;">1.313</td>
+<td style="text-align: center;">1.294</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; box-shadow: 0px 1.5px;"></td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.006)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.006)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.006)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.007)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.007)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Num.Obs.</td>
+<td style="text-align: center;">99685</td>
+<td style="text-align: center;">99685</td>
+<td style="text-align: center;">99685</td>
+<td style="text-align: center;">99685</td>
+<td style="text-align: center;">99685</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AIC</td>
+<td style="text-align: center;">444812.7</td>
+<td style="text-align: center;">616386.6</td>
+<td style="text-align: center;">644521.0</td>
+<td style="text-align: center;">685143.2</td>
+<td style="text-align: center;">816228.9</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">BIC</td>
+<td style="text-align: center;">444926.8</td>
+<td style="text-align: center;">616500.7</td>
+<td style="text-align: center;">644635.1</td>
+<td style="text-align: center;">685257.3</td>
+<td style="text-align: center;">816343.0</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Log.Lik.</td>
+<td style="text-align: center;">−222394.347</td>
+<td style="text-align: center;">−308181.314</td>
+<td style="text-align: center;">−322248.478</td>
+<td style="text-align: center;">−342559.590</td>
+<td style="text-align: center;">−408102.451</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">RMSE</td>
+<td style="text-align: center;">19811.54</td>
+<td style="text-align: center;">16620.15</td>
+<td style="text-align: center;">992.42</td>
+<td style="text-align: center;">297.45</td>
+<td style="text-align: center;">489.09</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>These models portray a very similar picture than the one for the full dataset. This suggests that the bias in the data may have not affected the results as much in the end.</p>
+<p>To confirm the trend, I tried to fit the regression using another sample of districts. The two districts are <strong>Santiago de Surco</strong> and <strong>San Juan de Miraflores</strong>. These are neighbouring districts in Southeast Lima. Both have several fences, and a population ranging across SES levels. Santiago de Surco has a larger population among the higher strata, while the opposite happens with San Juan de Miraflores.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>selection <span class="ot">=</span> <span class="fu">c</span>(<span class="st">'SANTIAGO DE SURCO'</span>,</span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>              <span class="st">'SAN JUAN DE MIRAFLORES'</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-4"><a href="#cb21-4" aria-hidden="true" tabindex="-1"></a>blocks_sample <span class="ot">=</span> blocks_data <span class="sc">|&gt;</span></span>
+<span id="cb21-5"><a href="#cb21-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(DISTRITO <span class="sc">%in%</span> selection)</span>
+<span id="cb21-6"><a href="#cb21-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb21-7"><a href="#cb21-7" aria-hidden="true" tabindex="-1"></a>blocks_sample <span class="sc">|&gt;</span></span>
+<span id="cb21-8"><a href="#cb21-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>(<span class="fu">aes</span>(DISTRITO, <span class="at">fill =</span> NSE_PREDOM)) <span class="sc">+</span></span>
+<span id="cb21-9"><a href="#cb21-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_bar</span>(<span class="at">position =</span> <span class="st">'dodge'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/restricted%202-%20ses%20by%20district-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>The results of the models here align more with my original hypothesis. There are no significant differences across SES levels, except that C-level blocks have more barriers around them.</p>
+<div class="tabset-margin-container"></div><div class="panel-tabset">
+<ul class="nav nav-tabs" role="tablist"><li class="nav-item" role="presentation"><a class="nav-link active" id="tabset-4-1-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-1" role="tab" aria-controls="tabset-4-1" aria-selected="true" href="">Plot</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-2-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-2" role="tab" aria-controls="tabset-4-2" aria-selected="false" href="">Predictions</a></li><li class="nav-item" role="presentation"><a class="nav-link" id="tabset-4-3-tab" data-bs-toggle="tab" data-bs-target="#tabset-4-3" role="tab" aria-controls="tabset-4-3" aria-selected="false" href="">Table</a></li></ul>
+<div class="tab-content">
+<div id="tabset-4-1" class="tab-pane active" role="tabpanel" aria-labelledby="tabset-4-1-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a><span class="co"># selecting data for models </span></span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>data_m <span class="ot">=</span> blocks_sample <span class="sc">|&gt;</span></span>
+<span id="cb22-3"><a href="#cb22-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">rename</span>(<span class="at">barriers_buff00 =</span> barriers_buff0,</span>
+<span id="cb22-4"><a href="#cb22-4" aria-hidden="true" tabindex="-1"></a>         <span class="at">barriers_buff01 =</span> barriers_buff1,</span>
+<span id="cb22-5"><a href="#cb22-5" aria-hidden="true" tabindex="-1"></a>         <span class="at">barriers_buff03 =</span> barriers_buff3,</span>
+<span id="cb22-6"><a href="#cb22-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">barriers_buff05 =</span> barriers_buff5) <span class="sc">|&gt;</span> <span class="co"># for order</span></span>
+<span id="cb22-7"><a href="#cb22-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(barriers_buff00<span class="sc">:</span>barriers_buff10,</span>
+<span id="cb22-8"><a href="#cb22-8" aria-hidden="true" tabindex="-1"></a>         NSE_PREDOM, circuity_avg,</span>
+<span id="cb22-9"><a href="#cb22-9" aria-hidden="true" tabindex="-1"></a>         intersection_count, ls, change19902020)</span>
+<span id="cb22-10"><a href="#cb22-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-11"><a href="#cb22-11" aria-hidden="true" tabindex="-1"></a><span class="co"># variable names for formulae in models</span></span>
+<span id="cb22-12"><a href="#cb22-12" aria-hidden="true" tabindex="-1"></a>depVarList <span class="ot">=</span> data_m <span class="sc">|&gt;</span></span>
+<span id="cb22-13"><a href="#cb22-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(barriers_buff00<span class="sc">:</span>barriers_buff10) <span class="sc">|&gt;</span></span>
+<span id="cb22-14"><a href="#cb22-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">colnames</span>()</span>
+<span id="cb22-15"><a href="#cb22-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-16"><a href="#cb22-16" aria-hidden="true" tabindex="-1"></a>indVarList <span class="ot">=</span> <span class="fu">setdiff</span>(<span class="fu">colnames</span>(data_m), depVarList) <span class="sc">|&gt;</span></span>
+<span id="cb22-17"><a href="#cb22-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">append</span>(<span class="st">"circuity_avg:intersection_count"</span>) <span class="sc">|&gt;</span> <span class="co"># interac</span></span>
+<span id="cb22-18"><a href="#cb22-18" aria-hidden="true" tabindex="-1"></a>  <span class="fu">paste</span>(<span class="at">collapse =</span> <span class="st">' + '</span>)</span>
+<span id="cb22-19"><a href="#cb22-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-20"><a href="#cb22-20" aria-hidden="true" tabindex="-1"></a><span class="co"># formatting data for splitting that allows to automate the process</span></span>
+<span id="cb22-21"><a href="#cb22-21" aria-hidden="true" tabindex="-1"></a>data_long <span class="ot">=</span> <span class="fu">pivot_longer</span>(data_m,</span>
+<span id="cb22-22"><a href="#cb22-22" aria-hidden="true" tabindex="-1"></a>                         <span class="at">cols =</span> <span class="fu">all_of</span>(depVarList),</span>
+<span id="cb22-23"><a href="#cb22-23" aria-hidden="true" tabindex="-1"></a>                         <span class="at">names_to =</span> <span class="st">'depVar'</span>,</span>
+<span id="cb22-24"><a href="#cb22-24" aria-hidden="true" tabindex="-1"></a>                         <span class="at">values_to =</span> <span class="st">'value'</span>)</span>
+<span id="cb22-25"><a href="#cb22-25" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-26"><a href="#cb22-26" aria-hidden="true" tabindex="-1"></a><span class="co"># models stored as list</span></span>
+<span id="cb22-27"><a href="#cb22-27" aria-hidden="true" tabindex="-1"></a>modelslist <span class="ot">=</span> data_long <span class="sc">|&gt;</span> </span>
+<span id="cb22-28"><a href="#cb22-28" aria-hidden="true" tabindex="-1"></a>  <span class="fu">split</span>(data_long<span class="sc">$</span>depVar) <span class="sc">|&gt;</span></span>
+<span id="cb22-29"><a href="#cb22-29" aria-hidden="true" tabindex="-1"></a>  <span class="fu">map</span>( <span class="sc">~</span> <span class="fu">glm.nb</span>(<span class="fu">as.formula</span>(<span class="fu">paste</span>(<span class="st">'value~'</span>,indVarList)),</span>
+<span id="cb22-30"><a href="#cb22-30" aria-hidden="true" tabindex="-1"></a>                <span class="at">data =</span> .x,</span>
+<span id="cb22-31"><a href="#cb22-31" aria-hidden="true" tabindex="-1"></a>                <span class="at">control=</span><span class="fu">glm.control</span>(<span class="at">maxit =</span> <span class="dv">50</span>),</span>
+<span id="cb22-32"><a href="#cb22-32" aria-hidden="true" tabindex="-1"></a>                <span class="at">na.action =</span> na.omit))</span>
+<span id="cb22-33"><a href="#cb22-33" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb22-34"><a href="#cb22-34" aria-hidden="true" tabindex="-1"></a><span class="co"># plot</span></span>
+<span id="cb22-35"><a href="#cb22-35" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_models</span>(modelslist, <span class="at">std.est =</span> <span class="st">'std2'</span>, <span class="at">ci.lvl =</span> .<span class="dv">99</span>,</span>
+<span id="cb22-36"><a href="#cb22-36" aria-hidden="true" tabindex="-1"></a>            <span class="at">vline.color =</span> <span class="st">'red'</span>,</span>
+<span id="cb22-37"><a href="#cb22-37" aria-hidden="true" tabindex="-1"></a>            <span class="at">m.labels =</span> <span class="fu">c</span>(<span class="st">'Barriers at 0m buffer'</span>,</span>
+<span id="cb22-38"><a href="#cb22-38" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 1m buffer'</span>,</span>
+<span id="cb22-39"><a href="#cb22-39" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 3m buffer'</span>,</span>
+<span id="cb22-40"><a href="#cb22-40" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 5m buffer'</span>,</span>
+<span id="cb22-41"><a href="#cb22-41" aria-hidden="true" tabindex="-1"></a>                        <span class="st">'Barriers at 10m buffer'</span>),</span>
+<span id="cb22-42"><a href="#cb22-42" aria-hidden="true" tabindex="-1"></a>            <span class="at">axis.labels =</span> <span class="fu">c</span>(<span class="st">'Circuity Average x Intersection Count'</span>,</span>
+<span id="cb22-43"><a href="#cb22-43" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Urbanized bet. 1990-2020'</span>,</span>
+<span id="cb22-44"><a href="#cb22-44" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Local Segregation Score'</span>,</span>
+<span id="cb22-45"><a href="#cb22-45" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Density'</span>,</span>
+<span id="cb22-46"><a href="#cb22-46" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Intersection Count'</span>,</span>
+<span id="cb22-47"><a href="#cb22-47" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Circuity Average'</span>,</span>
+<span id="cb22-48"><a href="#cb22-48" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level E (reference = A)'</span>,</span>
+<span id="cb22-49"><a href="#cb22-49" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level D (reference = A)'</span>,</span>
+<span id="cb22-50"><a href="#cb22-50" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level C (reference = A)'</span>,</span>
+<span id="cb22-51"><a href="#cb22-51" aria-hidden="true" tabindex="-1"></a>                            <span class="st">'Socioeconomic Level B (reference = A)'</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/models%20restricted%202%20plot-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+<div id="tabset-4-2" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-2-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" aria-hidden="true" tabindex="-1"></a><span class="fu">plot_model</span>(modelslist<span class="sc">$</span>barriers_buff03, <span class="at">type=</span><span class="st">'pred'</span>,</span>
+<span id="cb23-2"><a href="#cb23-2" aria-hidden="true" tabindex="-1"></a>           <span class="at">terms =</span> <span class="fu">c</span>(<span class="st">'intersection_count'</span>,</span>
+<span id="cb23-3"><a href="#cb23-3" aria-hidden="true" tabindex="-1"></a>                     <span class="st">'NSE_PREDOM [A, B, C, D, E]'</span>,</span>
+<span id="cb23-4"><a href="#cb23-4" aria-hidden="true" tabindex="-1"></a>                     <span class="st">'circuity_avg'</span>),</span>
+<span id="cb23-5"><a href="#cb23-5" aria-hidden="true" tabindex="-1"></a>           <span class="at">title =</span> <span class="st">'Predicted counts of barriers at 3m buffer'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<p><img src="barriers_analysis_files/figure-html/predictions%20restricted%202-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</div>
+<div id="tabset-4-3" class="tab-pane" role="tabpanel" aria-labelledby="tabset-4-3-tab">
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a><span class="fu">modelsummary</span>(modelslist, <span class="at">exponentiate =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>             <span class="at">standardize =</span> <span class="st">'refit'</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output-display">
+<table class="table table-sm table-striped small" data-quarto-postprocess="true">
+<thead>
+<tr class="header">
+<th style="text-align: left;" data-quarto-table-cell-role="th"></th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">barriers_buff00</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">barriers_buff01</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">&nbsp;barriers_buff03</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">&nbsp;barriers_buff05</th>
+<th style="text-align: center;" data-quarto-table-cell-role="th">&nbsp;barriers_buff10</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td style="text-align: left;">(Intercept)</td>
+<td style="text-align: center;">8.365</td>
+<td style="text-align: center;">24.240</td>
+<td style="text-align: center;">29.416</td>
+<td style="text-align: center;">37.032</td>
+<td style="text-align: center;">97.719</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.377)</td>
+<td style="text-align: center;">(1.118)</td>
+<td style="text-align: center;">(1.239)</td>
+<td style="text-align: center;">(1.571)</td>
+<td style="text-align: center;">(3.996)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOMB</td>
+<td style="text-align: center;">1.136</td>
+<td style="text-align: center;">1.089</td>
+<td style="text-align: center;">1.052</td>
+<td style="text-align: center;">1.136</td>
+<td style="text-align: center;">1.036</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.059)</td>
+<td style="text-align: center;">(0.058)</td>
+<td style="text-align: center;">(0.052)</td>
+<td style="text-align: center;">(0.056)</td>
+<td style="text-align: center;">(0.049)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOMC</td>
+<td style="text-align: center;">1.867</td>
+<td style="text-align: center;">1.747</td>
+<td style="text-align: center;">1.576</td>
+<td style="text-align: center;">1.732</td>
+<td style="text-align: center;">1.440</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.095)</td>
+<td style="text-align: center;">(0.092)</td>
+<td style="text-align: center;">(0.076)</td>
+<td style="text-align: center;">(0.084)</td>
+<td style="text-align: center;">(0.067)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOMD</td>
+<td style="text-align: center;">1.302</td>
+<td style="text-align: center;">1.148</td>
+<td style="text-align: center;">1.046</td>
+<td style="text-align: center;">1.125</td>
+<td style="text-align: center;">0.895</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.071)</td>
+<td style="text-align: center;">(0.065)</td>
+<td style="text-align: center;">(0.054)</td>
+<td style="text-align: center;">(0.058)</td>
+<td style="text-align: center;">(0.045)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">NSE_PREDOME</td>
+<td style="text-align: center;">1.185</td>
+<td style="text-align: center;">1.046</td>
+<td style="text-align: center;">0.969</td>
+<td style="text-align: center;">1.006</td>
+<td style="text-align: center;">0.789</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.086)</td>
+<td style="text-align: center;">(0.078)</td>
+<td style="text-align: center;">(0.066)</td>
+<td style="text-align: center;">(0.069)</td>
+<td style="text-align: center;">(0.052)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">circuity_avg</td>
+<td style="text-align: center;">1.090</td>
+<td style="text-align: center;">1.148</td>
+<td style="text-align: center;">1.184</td>
+<td style="text-align: center;">1.150</td>
+<td style="text-align: center;">1.099</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.022)</td>
+<td style="text-align: center;">(0.025)</td>
+<td style="text-align: center;">(0.023)</td>
+<td style="text-align: center;">(0.023)</td>
+<td style="text-align: center;">(0.021)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">intersection_count</td>
+<td style="text-align: center;">1.933</td>
+<td style="text-align: center;">1.815</td>
+<td style="text-align: center;">1.806</td>
+<td style="text-align: center;">1.802</td>
+<td style="text-align: center;">1.770</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.034)</td>
+<td style="text-align: center;">(0.033)</td>
+<td style="text-align: center;">(0.030)</td>
+<td style="text-align: center;">(0.030)</td>
+<td style="text-align: center;">(0.029)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">ls</td>
+<td style="text-align: center;">0.849</td>
+<td style="text-align: center;">0.841</td>
+<td style="text-align: center;">0.840</td>
+<td style="text-align: center;">0.842</td>
+<td style="text-align: center;">0.850</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;"></td>
+<td style="text-align: center;">(0.015)</td>
+<td style="text-align: center;">(0.015)</td>
+<td style="text-align: center;">(0.014)</td>
+<td style="text-align: center;">(0.014)</td>
+<td style="text-align: center;">(0.014)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">circuity_avg × intersection_count</td>
+<td style="text-align: center;">1.034</td>
+<td style="text-align: center;">0.993</td>
+<td style="text-align: center;">1.008</td>
+<td style="text-align: center;">1.006</td>
+<td style="text-align: center;">0.988</td>
+</tr>
+<tr class="even">
+<td style="text-align: left; box-shadow: 0px 1.5px;"></td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.012)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.011)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.010)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.010)</td>
+<td style="text-align: center; box-shadow: 0px 1.5px;">(0.010)</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">Num.Obs.</td>
+<td style="text-align: center;">5939</td>
+<td style="text-align: center;">5939</td>
+<td style="text-align: center;">5939</td>
+<td style="text-align: center;">5939</td>
+<td style="text-align: center;">5939</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">AIC</td>
+<td style="text-align: center;">41220.6</td>
+<td style="text-align: center;">52768.6</td>
+<td style="text-align: center;">54203.0</td>
+<td style="text-align: center;">57730.9</td>
+<td style="text-align: center;">67446.5</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">BIC</td>
+<td style="text-align: center;">41287.5</td>
+<td style="text-align: center;">52835.5</td>
+<td style="text-align: center;">54269.8</td>
+<td style="text-align: center;">57797.8</td>
+<td style="text-align: center;">67513.4</td>
+</tr>
+<tr class="even">
+<td style="text-align: left;">Log.Lik.</td>
+<td style="text-align: center;">−20600.296</td>
+<td style="text-align: center;">−26374.297</td>
+<td style="text-align: center;">−27091.478</td>
+<td style="text-align: center;">−28855.455</td>
+<td style="text-align: center;">−33713.265</td>
+</tr>
+<tr class="odd">
+<td style="text-align: left;">RMSE</td>
+<td style="text-align: center;">11.56</td>
+<td style="text-align: center;">33.04</td>
+<td style="text-align: center;">34.15</td>
+<td style="text-align: center;">49.89</td>
+<td style="text-align: center;">110.57</td>
+</tr>
+</tbody>
+</table>
+
+
+</div>
+</div>
+</div>
+</div>
+</div>
+<p>In conclusion, the bigger dataset seems to be the way to go for the paper. I may add a commentary on the alternative sampling of districts, but not necessarily discuss it at large.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const isCodeAnnotation = (el) => {
+    for (const clz of el.classList) {
+      if (clz.startsWith('code-annotation-')) {                     
+        return true;
+      }
+    }
+    return false;
+  }
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    text: function(trigger) {
+      const codeEl = trigger.previousElementSibling.cloneNode(true);
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+      let selectedAnnoteEl;
+      const selectorForAnnotation = ( cell, annotation) => {
+        let cellAttr = 'data-code-cell="' + cell + '"';
+        let lineAttr = 'data-code-annotation="' +  annotation + '"';
+        const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+        return selector;
+      }
+      const selectCodeLines = (annoteEl) => {
+        const doc = window.document;
+        const targetCell = annoteEl.getAttribute("data-target-cell");
+        const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+        const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+        const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+        const lineIds = lines.map((line) => {
+          return targetCell + "-" + line;
+        })
+        let top = null;
+        let height = null;
+        let parent = null;
+        if (lineIds.length > 0) {
+            //compute the position of the single el (top and bottom and make a div)
+            const el = window.document.getElementById(lineIds[0]);
+            top = el.offsetTop;
+            height = el.offsetHeight;
+            parent = el.parentElement.parentElement;
+          if (lineIds.length > 1) {
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+            height = bottom - top;
+          }
+          if (top !== null && height !== null && parent !== null) {
+            // cook up a div (if necessary) and position it 
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            div.style.top = top - 2 + "px";
+            div.style.height = height + 4 + "px";
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            gutterDiv.style.top = top - 2 + "px";
+            gutterDiv.style.height = height + 4 + "px";
+          }
+          selectedAnnoteEl = annoteEl;
+        }
+      };
+      const unselectCodeLines = () => {
+        const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+        elementsIds.forEach((elId) => {
+          const div = window.document.getElementById(elId);
+          if (div) {
+            div.remove();
+          }
+        });
+        selectedAnnoteEl = undefined;
+      };
+      // Attach click handler to the DT
+      const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+      for (const annoteDlNode of annoteDls) {
+        annoteDlNode.addEventListener('click', (event) => {
+          const clickedEl = event.target;
+          if (clickedEl !== selectedAnnoteEl) {
+            unselectCodeLines();
+            const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+            if (activeEl) {
+              activeEl.classList.remove('code-annotation-active');
+            }
+            selectCodeLines(clickedEl);
+            clickedEl.classList.add('code-annotation-active');
+          } else {
+            // Unselect the line
+            unselectCodeLines();
+            clickedEl.classList.remove('code-annotation-active');
+          }
+        });
+      }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

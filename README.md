@@ -1,6 +1,8 @@
 # Residential Micro-Segregation and Social Capital in Lima, Peru: Supplementary Material
 *Fernando Calderón-Figueroa*
 
+[![DOI](https://zenodo.org/badge/745132052.svg)](https://zenodo.org/doi/10.5281/zenodo.10536000)
+
 These are the supplementary materials to my article published in [*Land's* special issue on urban micro-segregation](https://www.mdpi.com/journal/land/special_issues/938S2A99L1). The [GitHub repository](https://github.com/fcalderonfigueroa/land_microsegregation_lima) includes pre-processed data and code to reproduce the findings. Some of the original datasets are too large to make available in the repository, so I have included links to download them below.
 
 ## Raw Data
